@@ -8,9 +8,10 @@ An ML app that analyzes movie reviews and predicts whether they're positive or n
 movie-sentiment/
 ├── assets/
 │   ├── data/                       # Dataset directory
-│   ├── models/
-│   │   └── sentiment_model.pkl     # Trained model file
-│   └── docs/                       # Documentation
+│   ├── docs/                       # Documentation
+│   ├── images/                     # Image assets
+│   └── models/
+│       └── sentiment_model.pkl     # Trained model file
 ├── src/
 │   ├── train/
 │   │   └── train_model.py          # Model training script
@@ -45,7 +46,7 @@ uv sync
 source .venv/bin/activate
 ```
 
-## Install Package in Dev Mode
+### Install Package in Dev Mode
 ```bash
 uv pip install -e .
 ```
