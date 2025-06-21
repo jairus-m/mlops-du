@@ -32,12 +32,12 @@ movie-sentiment/
 
 ```bash
 git clone https://github.com/jairus-m/mlops-du.git
-cd mlopds-du/movie-sentiment
+cd mlops-du 
 ```
 
 ### Install Dependencies
 ```bash
-uv sync
+uv sync --all-groups && uv sync --project movie-sentiment
 ```
 
 ### Activate Virtual Env
@@ -46,8 +46,9 @@ uv sync
 source .venv/bin/activate
 ```
 
-### Install Package in Dev Mode
+### Install Package in Dev Mode & CD into `movie-sentiment`
 ```bash
+cd movie-sentiment
 uv pip install -e .
 ```
 
