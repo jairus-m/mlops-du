@@ -11,4 +11,4 @@ dev = [
 ]
 
 [tool.uv.workspace]
-members = ["movie-sentiment"]
+members = ["assignments/*"]
