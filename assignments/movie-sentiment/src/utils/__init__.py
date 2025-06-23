@@ -1,10 +1,11 @@
 import os
 import logging
+from pathlib import Path
 
-# Use os.path.join and make paths relative to project root
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DATA_PATH = os.path.join(BASE_DIR, 'assets', 'data', 'IMDB Dataset.csv')
-MODEL_PATH = os.path.join(BASE_DIR, 'assets', 'models', 'sentiment_model.pkl')
+# Use pathlib.Path for better path handling
+BASE_DIR = Path(__file__).parent.parent.parent
+DATA_PATH = BASE_DIR / 'assets' / 'data' / 'IMDB Dataset.csv'
+MODEL_PATH = BASE_DIR / 'assets' / 'models' / 'sentiment_model.pkl'
 
 def setup_logging() -> logging.Logger:
     """
