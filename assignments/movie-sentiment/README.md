@@ -22,11 +22,8 @@ movie-sentiment/
 └── uv.lock                         # uv lockfile for deps
 ```
 
-## Installation and Setup
-
-### Prerequisites
-- `uv>=0.7.10`
-  - [uv docs](https://docs.astral.sh/uv/)
+## Manual Installation and Setup 
+- Follow these steps if not using `task` to execute. Refer to the root-level `README.md` for simpler execution instructions.
 
 ### Clone the Repository
 
