@@ -4,7 +4,6 @@ from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 import joblib
-import os
 from pathlib import Path
 from src.utils import setup_logging, DATA_PATH, MODEL_PATH
 
@@ -52,10 +51,20 @@ def create_and_train_model(X, y) -> Pipeline:
     """
     logger.info("Creating and training the model pipeline...")
     
-    # Create the pipeline
+    # Create the pipeline w/ optional params
     pipeline = Pipeline([
-        ('tfidf', TfidfVectorizer()), # Add params?
-        ('classifier', MultinomialNB()) # Add params?
+        ('tfidf', TfidfVectorizer(
+            max_features=10000,  # Limit vocabulary size
+            min_df=2,  # Minimum document frequency
+            max_df=0.95,  # Maximum document frequency ?
+            ngram_range=(1, 2),  # Use unigrams and bigrams ?
+            stop_words='english'  # Remove English stop words
+        )),
+        ('classifier', MultinomialNB(
+            alpha=1.0,  # Smoothing parameter (default = 1)
+            fit_prior=True,  # Learn class prior probabilities (default = True)
+            class_prior=None  # Uniform prior distribution (default = None)
+        ))
     ])
     logger.info(f"Pipeline created successfully: {pipeline.named_steps}")
     

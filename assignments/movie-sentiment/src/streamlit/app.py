@@ -54,7 +54,7 @@ if analyze_button:
         probabilities = model.predict_proba([user_text])[0]
         # st.write("Debug - Raw probabilities:", probabilities)
         
-        st.subheader("PredictedReview Sentiment!")
+        st.subheader("Predicted Review Sentiment!")
         
         if prediction == 1:
             st.success("Positive 👍")
