@@ -3,9 +3,9 @@ This repo contains all the sub-repos representing each assignment.
 
 ## Prerequisites
 - `uv>=0.7.10`
-  - [uv docs](https://docs.astral.sh/uv/getting-started/installation/)
+  - [uv installation](https://docs.astral.sh/uv/getting-started/installation/)
 - `task>=3.43.3`
-  - [task docs](https://taskfile.dev/installation/)
+  - [task installation](https://taskfile.dev/installation/)
 
 ## Dependency Management
 The entire monorepo dependency graph is managed by [uv](https://docs.astral.sh/uv/) and uses the [workspaces](https://docs.astral.sh/uv/concepts/projects/workspaces/) feature. This allows __all packages__ within the monorepo to share a single lockfile and a consistent set of dependencies and at the same time, enabling each package to define its own `pyproject.toml`. This greatly simplifies dependency resolution, installation, and script execution for all sub-repos/packages/workspace members. Within each workspace package, I try to add straightforward instructions to execute the individual assignments scripts/apps.

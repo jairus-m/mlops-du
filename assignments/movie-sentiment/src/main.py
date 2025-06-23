@@ -11,7 +11,11 @@ def main():
     elif MODEL_PATH.exists():
         logger.info("Model file already exists, skipping training...")
     else:
-        logger.info("Warning: IMDB dataset not found. Please download it to =https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews")
+        logger.info(
+            "Warning: IMDB dataset not found. Please download it from: "
+            "https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews "
+            "and place it in the `assets/data/` directory."
+        )
         return
 
     # Run Streamlit app
