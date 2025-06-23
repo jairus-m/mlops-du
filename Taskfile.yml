@@ -1,0 +1,8 @@
+version: '3'
+
+tasks:
+  movie-sentiment:
+    desc: Run the movie sentiment analysis model training and streamlit app
+    dir: assignments/movie-sentiment
+    cmds:
+      - uv run python src/main.py 
