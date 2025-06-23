@@ -5,17 +5,18 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 import joblib
 import os
+from pathlib import Path
 from src.utils import setup_logging, DATA_PATH, MODEL_PATH
 
 logger = setup_logging()
 
 
-def load_and_preprocess_data(data_path: str) -> tuple[np.ndarray, np.ndarray]:
+def load_and_preprocess_data(data_path: Path) -> tuple[np.ndarray, np.ndarray]:
     """
     Load and preprocess the IMDB dataset.
     Returns features (X) and labels (y).
     Args:
-        data_path (str): Path to the IMDB dataset
+        data_path (Path): Path to the IMDB dataset
     Returns:
         X (np.ndarray): Training data / features (X)
         y (np.ndarray): Training Labels / target (y)
@@ -68,13 +69,13 @@ def create_and_train_model(X, y) -> Pipeline:
     
     return pipeline
 
-def save_model(pipeline, model_path) -> None:
+def save_model(pipeline, model_path: Path) -> None:
     """
     Save the trained model pipeline as a pickle file
     to a specified path.
     Args:
         pipeline (Pipeline): Trained pipeline
-        model_path (str): Path to save the model
+        model_path (Path): Path to save the model
     Returns:
         None
     """
@@ -83,8 +84,8 @@ def save_model(pipeline, model_path) -> None:
     joblib.dump(pipeline, model_path)
     
     # Verify the model was saved correctly
-    if os.path.exists(model_path):
-        file_size = os.path.getsize(model_path) / (1024 * 1024)  # MB
+    if model_path.exists():
+        file_size = model_path.stat().st_size / (1024 * 1024)  # MB
         logger.info(f"Model saved successfully! File size: {file_size:.2f} MB")
     else:
         logger.error("Error: Model file was not created!")
