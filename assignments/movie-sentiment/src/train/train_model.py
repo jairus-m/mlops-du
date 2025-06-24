@@ -1,14 +1,22 @@
+from pathlib import Path
 import pandas as pd
 import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 import joblib
-from pathlib import Path
-from src.utils import setup_logging, DATA_PATH, MODEL_PATH
+from src.utils import(
+    setup_logging,
+    download_kaggle_dataset,
+    DATA_PATH,
+    MODEL_PATH,
+    KAGGLE_DATASET_PATH,
+    KAGGLE_DATASET_NAME
+)
 
 logger = setup_logging()
 
+pd.set_option('future.no_silent_downcasting', True)
 
 def load_and_preprocess_data(data_path: Path) -> tuple[np.ndarray, np.ndarray]:
     """
@@ -31,7 +39,7 @@ def load_and_preprocess_data(data_path: Path) -> tuple[np.ndarray, np.ndarray]:
     
     # Split into features (X) and labels (y)
     X = df['review'].values
-    y = df['sentiment'].replace({'negative': 0, 'positive': 1}).values
+    y = df['sentiment'].replace({'negative': 0, 'positive': 1}).astype(int).values
     
     logger.info(f"Features (X) shape: {X.shape}")
     logger.info(f"Labels (y) shape: {y.shape}")
@@ -39,7 +47,7 @@ def load_and_preprocess_data(data_path: Path) -> tuple[np.ndarray, np.ndarray]:
     
     return X, y
 
-def create_and_train_model(X, y) -> Pipeline:
+def create_and_train_model_pipeline(X, y) -> Pipeline:
     """
     Create and train the sentiment analysis pipeline.
     Returns the trained pipeline.
@@ -106,9 +114,18 @@ def main():
     logger.info("IMDB Sentiment Analysis Model Training")
     
     try:
+        if DATA_PATH.exists():
+            logger.info("IMDB dataset found, loading and preprocessing data...")
+        else:
+            download_kaggle_dataset(
+                kaggle_dataset_path=KAGGLE_DATASET_PATH,
+                kaggle_dataset_name=KAGGLE_DATASET_NAME
+            )
+            logger.info("IMDB dataset downloaded, loading and preprocessing data...")
+            
         X_train, y_train = load_and_preprocess_data(DATA_PATH)
         
-        pipeline = create_and_train_model(X_train, y_train)
+        pipeline = create_and_train_model_pipeline(X_train, y_train)
         
         save_model(pipeline, MODEL_PATH)
         

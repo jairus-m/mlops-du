@@ -40,10 +40,9 @@ task movie-sentiment
 ```
 
 **Run Notes:** 
-- Running `task` will automatically train the ML model (if applicable) and will open the Streamlit web app in `http://localhost:8501`
+- Running `task` will automatically download the IMDB data, train the ML model, and will open the Streamlit web app in `http://localhost:8501`
+  - The dataset will be downloaded from [IMDB Dataset of 50K Movie Reviews](https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews) and placed in the `assets/data` directory.
 - Once in the Streamlit UI, enter a movie review in the text area and click "Analyze" to get sentiment predictions!
-- The trained model (`sentiment_model.pkl`) is already included in the repo; therefore, you don't have to retrain unless you want to use different data or parameters.
-  - Make sure you have the IMDB dataset in the `assets/data/` directory if you plan to re-run the training script. The dataset should be named `IMDB Dataset.csv` and can be downloaded from [IMDB Dataset of 50K Movie Reviews](https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews).
 
 Run the following to manually execute the ML training script and to launch the Streamlit app:
 ```bash
