@@ -14,7 +14,7 @@ def main():
         logger.info(
             "Warning: IMDB dataset not found. Please download it from: "
             "https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews "
-            "and place it in the `assets/data/` directory."
+            f"and place it in '{DATA_PATH.parent}/'."
         )
         return
 
