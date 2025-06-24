@@ -4,9 +4,11 @@ from sklearn.pipeline import Pipeline
 from src.utils import MODEL_PATH
 
 st.title("Movie Review Sentiment Analyzer")
-st.write("This app analyzes the sentiment of movie reviews and predicts whether they are positive or negative.")
+st.write(
+    "This app analyzes the sentiment of movie reviews and predicts whether they are positive or negative."
+)
 
-# Load the Saved Model
+
 @st.cache_data
 def load_model(model_path: str) -> Pipeline:
     """
@@ -29,7 +31,6 @@ def load_model(model_path: str) -> Pipeline:
 
 model = load_model(MODEL_PATH)
 
-# Check if model was loaded successfully
 if model is None:
     st.stop()
 
@@ -38,7 +39,7 @@ st.subheader("Enter a movie review to analyze:")
 user_text = st.text_area(
     label="Movie Review",
     placeholder="Type or paste your movie review here...",
-    height=150
+    height=150,
 )
 
 analyze_button = st.button("Analyze")
@@ -50,20 +51,19 @@ if analyze_button:
     else:
         prediction = model.predict([user_text])[0]
         # st.write("Debug - Raw prediction:", prediction)
-        
+
         probabilities = model.predict_proba([user_text])[0]
         # st.write("Debug - Raw probabilities:", probabilities)
-        
+
         st.subheader("Predicted Review Sentiment!")
-        
+
         if prediction == 1:
             st.success("Positive 👍")
             st.write(f"Confidence: {probabilities[1]:.2%}")
         else:
             st.error("Negative 👎")
             st.write(f"Confidence: {probabilities[0]:.2%}")
-        
-        # Show detailed probabilities
+
         st.write("**Detailed Probabilities:**")
         st.write(f"- Negative: {probabilities[0]:.2%}")
         st.write(f"- Positive: {probabilities[1]:.2%}")
