@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "joblib>=1.5.1",
+    "kagglehub>=0.3.12",
     "numpy>=2.3.0",
     "pandas>=2.3.0",
     "scikit-learn>=1.7.0",
