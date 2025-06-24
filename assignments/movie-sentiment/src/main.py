@@ -1,5 +1,10 @@
 import subprocess
-from src.utils import DATA_PATH, MODEL_PATH, setup_logging
+from src.utils import(
+    setup_logging,
+    download_kaggle_dataset,
+    DATA_PATH,
+    MODEL_PATH
+)
 
 logger = setup_logging()
 
@@ -11,12 +16,7 @@ def main():
     elif MODEL_PATH.exists():
         logger.info("Model file already exists, skipping training...")
     else:
-        logger.info(
-            "Warning: IMDB dataset not found. Please download it from: "
-            "https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews "
-            f"and place it in '{DATA_PATH.parent}/'."
-        )
-        return
+        subprocess.run(["python", "-m", "src.train.train_model"])
 
     # Run Streamlit app
     logger.info("Starting Streamlit app...")
