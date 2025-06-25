@@ -7,10 +7,16 @@ This repo contains all the sub-repos representing each assignment.
 - `task>=3.43.3`
   - [task installation](https://taskfile.dev/installation/)
 
+__Note__: For easy setup on macOS/Linux, use the included installation script:
+```bash
+bash install-tools.sh
+```
+This will install `uv` and `task` if they're not already present and will verify the installation.
+
 ## Dependency Management
 The entire monorepo dependency graph is managed by [uv](https://docs.astral.sh/uv/) and uses the [workspaces](https://docs.astral.sh/uv/concepts/projects/workspaces/) feature. This allows __all packages__ within the monorepo to share a single lockfile and a consistent set of dependencies and at the same time, enabling each package to define its own `pyproject.toml`. This greatly simplifies dependency resolution, installation, and script execution for all sub-repos/packages/workspace members. Within each workspace package, I try to add straightforward instructions to execute the individual assignments scripts/apps.
 
-__NOTE__: To export a `requirements.txt` file that lists out all the dependencies within `assignments/<project-name>`, run the following from the root:
+__Note__: To export a `requirements.txt` file that lists out all the dependencies within `assignments/<project-name>`, run the following from the root:
 ```bash
 uv export --directory assignments/<project-name> -o requirements.txt
 ```
