@@ -8,7 +8,6 @@ NC='\033[0m'
 
 echo -e "${BLUE}🚀 Installing uv and task on macOS...${NC}\n"
 
-# Function to check if command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
@@ -28,14 +27,24 @@ if command_exists uv; then
     uv --version
 else
     echo -e "${BLUE}📦 Installing uv...${NC}"
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    print_status $? "uv installation"
+    # Install uv using Homebrew (recommended for macOS)
+    if command_exists brew; then
+        brew install uv
+        print_status $? "uv installation via Homebrew"
+    else
+        echo -e "${YELLOW}⚠️  Homebrew not found. Installing uv manually...${NC}"
+        # Manual installation as fallback
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        print_status $? "uv installation via script"
+    fi
     
-    # Source the shell configuration to make uv available
-    if [[ "$SHELL" == *"zsh"* ]]; then
-        source ~/.zshrc 2>/dev/null || true
-    elif [[ "$SHELL" == *"bash"* ]]; then
-        source ~/.bashrc 2>/dev/null || true
+    # Source the shell configuration to make uv available (only needed for manual install)
+    if ! command_exists brew; then
+        if [[ "$SHELL" == *"zsh"* ]]; then
+            source ~/.zshrc 2>/dev/null || true
+        elif [[ "$SHELL" == *"bash"* ]]; then
+            source ~/.bashrc 2>/dev/null || true
+        fi
     fi
 fi
 
