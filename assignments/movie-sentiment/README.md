@@ -26,11 +26,12 @@ movie-sentiment/
 
 ## Installation and Setup 
 
-### Clone the Repository
+### Clone the Repository and Install Dependencies
 
 ```bash
 git clone https://github.com/jairus-m/mlops-du.git
-cd mlops-du 
+cd mlops-du
+bash install-tools.sh
 ```
 
 ### Run 
