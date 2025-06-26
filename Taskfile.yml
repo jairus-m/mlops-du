@@ -1,10 +1,45 @@
 version: '3'
 
 tasks:
-  movie-sentiment:
-    desc: Run the movie sentiment analysis model training and streamlit app
-    dir: assignments/movie-sentiment
+  # Assignment 1 - Local Execution (Without Docker)
+  execute-proj:
+    desc: Run the project locally with uv (`task execute-proj PROJ=<project-name>`)
+    dir: 'assignments/{{.PROJ}}'
     cmds:
-      - uv sync --project assignments/movie-sentiment
+      - uv sync --project assignments/{{.PROJ}}
       - uv pip install -e .
-      - uv run python src/main.py 
+      - uv run python src/main.py
+
+  # Assignment 2 - Docker Execution
+  execute-proj-docker:
+    desc: Build and run the project in Docker (`task execute-proj-docker PROJ=<project-name>`)
+    dir: 'assignments/{{.PROJ}}'
+    vars:
+      IMG: '{{.PROJ}}'
+    cmds:
+      - docker build -t {{.IMG}} .
+      - docker run --rm -p 8501:8501 {{.IMG}}
+
+  build:
+    desc: Build the Docker container (`task build PROJ=<project-name>`)
+    dir: 'assignments/{{.PROJ}}'
+    vars:
+      IMG: '{{.PROJ}}' # Redundant but makes it clear that the image name is the same as the project name
+    cmds:
+      - docker build -t {{.IMG}} .
+
+  run:
+    desc: Run the Docker container (`task run PROJ=<project-name>`)
+    dir: 'assignments/{{.PROJ}}'
+    vars:
+      IMG: '{{.PROJ}}'
+    cmds:
+      - docker run --rm -p 8501:8501 {{.IMG}}
+
+  clean:
+    desc: Remove Docker image (`task clean PROJ=<project-name>`)
+    dir: 'assignments/{{.PROJ}}'
+    vars:
+      IMG: '{{.PROJ}}'
+    cmds:
+      - docker rmi {{.IMG}} || true
