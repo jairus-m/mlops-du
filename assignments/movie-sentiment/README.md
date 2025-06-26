@@ -19,6 +19,7 @@ movie-sentiment/
 │   │   └── app.py                  # Streamlit web app
 │   ├── utils/                      # Utils (logging) and constants
 │   └── main.py                     # Main entry point to run ML training/streamlit app
+├── Dockerfile                      # Docker container config
 ├── pyproject.toml                  # Python dependencies
 ├── README.md                       # Submission docs 
 └── uv.lock                         # uv lockfile for deps
@@ -32,25 +33,45 @@ movie-sentiment/
 git clone https://github.com/jairus-m/mlops-du.git
 cd mlops-du 
 ```
-
-### Run 
+__Note__: Make sure both `uv` and `task` are installed:
 ```bash
-# Run from the mono repo root dir, mlops-du/
-task movie-sentiment
+bash install-tools.sh
+```
+
+### Run Options
+
+#### Without Docker
+```bash
+task execute-proj PROJ=movie-sentiment
+```
+
+
+#### With Docker
+To run each Docker command step-by-step:
+```bash
+# Build Docker Container
+task build PROJ=movie-sentiment
+
+# Run Docker Container
+task run PROJ=movie-sentiment
+
+# Clean up: Remove Docker Image
+task clean PROJ=movie-sentiment
+```
+
+To run Docker build and run in one command:
+```bash
+# Build and run Docker Container
+task execute-proj-docker PROJ=movie-sentiment
+
+# Clean up: Remove Docker Image
+task clean PROJ=movie-sentiment
 ```
 
 **Run Notes:** 
 - Running `task` will automatically download the IMDB data, train the ML model, and will open the Streamlit web app in `http://localhost:8501`
   - The dataset will be downloaded from [IMDB Dataset of 50K Movie Reviews](https://www.kaggle.com/datasets/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews) and placed in the `assets/data` directory.
 - Once in the Streamlit UI, enter a movie review in the text area and click "Analyze" to get sentiment predictions!
-
-Run the following to manually execute the ML training script and to launch the Streamlit app:
-```bash
-cd assignments/movie-sentiment
-uv sync
-uv run python -m src.train.train_model
-uv run streamlit run src/streamlit/app.py 
-```
 
 ## Example Output
 __Positive Sentiment:__  
