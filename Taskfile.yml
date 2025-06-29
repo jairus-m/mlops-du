@@ -1,45 +1,91 @@
 version: '3'
 
 tasks:
+  # Internal helper tasks to modularized re-used logic
+  _validate:
+    internal: true
+    cmds:
+      - |
+        if [ -z "{{.PROJ}}" ]; then
+          echo "❌ Error: PROJ variable is required"
+          echo "Usage: task <task-name> PROJ=<project-name>"
+          exit 1
+        fi
+      - |
+        # Check if PROJ_DIR is set (from command line or parent task)
+        if [ -n "{{.PROJ_DIR}}" ]; then
+          # Use the provided PROJ_DIR
+          if [ ! -d "{{.PROJ_DIR}}" ]; then
+            echo "❌ Error: Directory {{.PROJ_DIR}} does not exist"
+            echo "Make sure the project's directory exists or override with PROJ_DIR=<path>"
+            exit 1
+          fi
+        else
+          # Use the default value
+          if [ ! -d "assignments/{{.PROJ}}" ]; then
+            echo "❌ Error: Directory assignments/{{.PROJ}} does not exist"
+            echo "Make sure the project's directory exists or override with PROJ_DIR=<path>"
+            exit 1
+          fi
+        fi
+    silent: true
+
+  _docker-build:
+    internal: true
+    deps: [_validate]
+    vars:
+      PROJ_DIR: 'assignments/{{.PROJ}}'
+      IMG: '{{.PROJ}}'
+    dir: '{{.PROJ_DIR}}'
+    cmds:
+      - docker build -t {{.IMG}} .
+
+  _docker-run:
+    internal: true
+    deps: [_validate]
+    vars:
+      PROJ_DIR: 'assignments/{{.PROJ}}'
+      IMG: '{{.PROJ}}'
+    dir: '{{.PROJ_DIR}}'
+    cmds:
+      - docker run --rm -p 8501:8501 {{.IMG}}
+
+  _docker-clean:
+    internal: true
+    deps: [_validate]
+    vars:
+      PROJ_DIR: 'assignments/{{.PROJ}}'
+      IMG: '{{.PROJ}}'
+    cmds:
+      - docker rmi {{.IMG}} || true
+
   # Assignment 1 - Local Execution (Without Docker)
   execute-proj:
     desc: Run the project locally with uv (`task execute-proj PROJ=<project-name>`)
-    dir: 'assignments/{{.PROJ}}'
+    deps: [_validate]
+    vars:
+      PROJ_DIR: 'assignments/{{.PROJ}}'
+    # Can override PROJ_DIR in CLI 
+    # i.e task execute-proj PROJ=<project-name> PROJ_DIR=<project-directory>  
+    dir: '{{.PROJ_DIR}}' 
     cmds:
-      - uv sync --project assignments/{{.PROJ}}
+      - uv sync --project {{.PROJ_DIR}}
       - uv pip install -e .
       - uv run python src/main.py
 
   # Assignment 2 - Docker Execution
   execute-proj-docker:
     desc: Build and run the project in Docker (`task execute-proj-docker PROJ=<project-name>`)
-    dir: 'assignments/{{.PROJ}}'
-    vars:
-      IMG: '{{.PROJ}}'
-    cmds:
-      - docker build -t {{.IMG}} .
-      - docker run --rm -p 8501:8501 {{.IMG}}
+    deps: [_docker-build, _docker-run]
 
   build:
     desc: Build the Docker container (`task build PROJ=<project-name>`)
-    dir: 'assignments/{{.PROJ}}'
-    vars:
-      IMG: '{{.PROJ}}' # Redundant but makes it clear that the image name is the same as the project name
-    cmds:
-      - docker build -t {{.IMG}} .
+    deps: [_docker-build]
 
   run:
     desc: Run the Docker container (`task run PROJ=<project-name>`)
-    dir: 'assignments/{{.PROJ}}'
-    vars:
-      IMG: '{{.PROJ}}'
-    cmds:
-      - docker run --rm -p 8501:8501 {{.IMG}}
+    deps: [_docker-run]
 
   clean:
     desc: Remove Docker image (`task clean PROJ=<project-name>`)
-    dir: 'assignments/{{.PROJ}}'
-    vars:
-      IMG: '{{.PROJ}}'
-    cmds:
-      - docker rmi {{.IMG}} || true
+    deps: [_docker-clean]
