@@ -27,25 +27,18 @@ uv export --directory assignments/<project-name> -o requirements.txt
 
 ## Execution
 Assignments are ran with [task](https://taskfile.dev/) which is a task runner/build tool that provides a simple and consistent way to execute each assignment's main entry point script or various other CLI commands.
+- __Note:__ All subrepos are under `assignments/` and are also reffered to as "projects". For example, `mlops-du/assignments/movie-sentiment` is both a subrepo and project.
 
-## Contents 
-All subrepos are under `assignments/` and are also reffered to as "projects". For example, `mlops-du/assignments/movie-sentiment` is a subrepo and project.
+---
 
-#### Assignment 1: Movie Sentiment ML Pipeline & Streamlit App
+### Assignment 1: Movie Sentiment ML Pipeline & Streamlit App
 - `movie-sentiment/`
   - Run command: `task execute-proj PROJ=movie-sentiment`
 
-#### Assignment 2: Use Docker to Run Movie Sentiment ML Pipeline & Streamlit App
+### Assignment 2: Use Docker to Run Movie Sentiment ML Pipeline & Streamlit App
 - `movie-sentiment/`
   - Run commands:
     - Build Docker Container: `task build PROJ=movie-sentiment`
     - Run Docker Container: `task run PROJ=movie-sentiment`
     - Remove Docker Image: `task clean PROJ=movie-sentiment`
     - Build + Run Docker Container: `task execute-proj-docker PROJ=movie-sentiment`
-
-
-
-
-
-
-
