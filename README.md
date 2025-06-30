@@ -20,11 +20,6 @@ This shell script will install `uv` and `task` if they're not already present an
 ## Dependency Management
 The entire monorepo dependency graph is managed by [uv](https://docs.astral.sh/uv/) and uses the [workspaces](https://docs.astral.sh/uv/concepts/projects/workspaces/) feature. This allows __all packages__ within the monorepo to share a single lockfile and a consistent set of dependencies and at the same time, enabling each package to define its own `pyproject.toml`. This greatly simplifies dependency resolution, installation, and script execution for all sub-repos/packages/workspace members. Within each workspace package, I try to add straightforward instructions to execute the individual assignments scripts/apps.
 
-__Note__: To export a `requirements.txt` file that lists out all the dependencies within `assignments/<project-name>`, run the following from the root:
-```bash
-uv export --directory assignments/<project-name> -o requirements.txt
-```
-
 ## Execution
 Assignments are ran with [task](https://taskfile.dev/) which is a task runner/build tool that provides a simple and consistent way to execute each assignment's main entry point script or various other CLI commands.
 - __Note:__ All subrepos are under `assignments/` and are also reffered to as "projects". For example, `mlops-du/assignments/movie-sentiment` is both a subrepo and project.
@@ -42,3 +37,9 @@ Assignments are ran with [task](https://taskfile.dev/) which is a task runner/bu
     - Run Docker Container: `task run PROJ=movie-sentiment`
     - Remove Docker Image: `task clean PROJ=movie-sentiment`
     - Build + Run Docker Container: `task execute-proj-docker PROJ=movie-sentiment`
+
+---
+__Note__: To export a `requirements.txt` file that lists out all the dependencies within `assignments/<project-name>`, run the following from the root:
+```bash
+uv export --directory assignments/<project-name> -o requirements.txt
+```

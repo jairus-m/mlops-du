@@ -21,22 +21,11 @@ movie-sentiment/
 │   └── main.py                     # Main entry point to run ML training/streamlit app
 ├── Dockerfile                      # Docker container config
 ├── pyproject.toml                  # Python dependencies
-├── README.md                       # Submission docs 
-└── uv.lock                         # uv lockfile for deps
+└── README.md                       # Submission docs 
 ```
 
 ## Installation and Setup 
-
-### Clone the Repository
-
-```bash
-git clone https://github.com/jairus-m/mlops-du.git
-cd mlops-du 
-```
-__Note__: Make sure both `uv` and `task` are installed:
-```bash
-bash install-tools.sh
-```
+For prerequisites, installation instructions, and setup details, please see the top-level `README.md` file. It contains information about required dependencies, how to clone the repository, and instructions for running the installation script. It also goes over how to run and execute assignments with `task`.
 
 ### Run Options
 
@@ -44,7 +33,6 @@ bash install-tools.sh
 ```bash
 task execute-proj PROJ=movie-sentiment
 ```
-
 
 #### With Docker
 To run each Docker command step-by-step:
