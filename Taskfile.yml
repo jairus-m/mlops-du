@@ -35,7 +35,11 @@ tasks:
     deps: [_validate]
     vars:
       PROJ_DIR: 'assignments/{{.PROJ}}'
+      # IMG variable is redundant but it makes it clear that the Docker image name == project name
       IMG: '{{.PROJ}}'
+    # Can override PROJ_DIR in CLI 
+    # i.e task execute-proj PROJ=<project-name> PROJ_DIR=<project-directory>  
+  
     dir: '{{.PROJ_DIR}}'
     cmds:
       - docker build -t {{.IMG}} .
@@ -65,27 +69,40 @@ tasks:
     deps: [_validate]
     vars:
       PROJ_DIR: 'assignments/{{.PROJ}}'
-    # Can override PROJ_DIR in CLI 
-    # i.e task execute-proj PROJ=<project-name> PROJ_DIR=<project-directory>  
     dir: '{{.PROJ_DIR}}' 
     cmds:
-      - uv sync --project {{.PROJ_DIR}}
+      - uv sync --package {{.PROJ}}
       - uv pip install -e .
       - uv run python src/main.py
+    silent: true
 
   # Assignment 2 - Docker Execution
   execute-proj-docker:
     desc: Build and run the project in Docker (`task execute-proj-docker PROJ=<project-name>`)
-    deps: [_docker-build, _docker-run]
+    deps: [_validate]
+    vars:
+      PROJ_DIR: 'assignments/{{.PROJ}}'
+      IMG: '{{.PROJ}}'
+    dir: '{{.PROJ_DIR}}'    
+    # The internal helper docker commands run in their own individual task contexts
+    # In order to run both build and run in succession, the two have to be in the same "task" running context
+    # Which is why the cmds are explicit in this task
+    cmds:
+      - docker build -t {{.IMG}} .
+      - docker run --rm -p 8501:8501 {{.IMG}}
+    silent: true
 
   build:
     desc: Build the Docker container (`task build PROJ=<project-name>`)
     deps: [_docker-build]
+    silent: true
 
   run:
     desc: Run the Docker container (`task run PROJ=<project-name>`)
     deps: [_docker-run]
+    silent: true
 
   clean:
     desc: Remove Docker image (`task clean PROJ=<project-name>`)
     deps: [_docker-clean]
+    silent: true
