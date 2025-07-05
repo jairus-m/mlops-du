@@ -1,9 +1,10 @@
 version: '3'
 
 tasks:
-  # Internal helper tasks to modularized re-used logic
+  # Internal validator for env vars / projects args
   _validate:
     internal: true
+    silent: true
     cmds:
       - |
         if [ -z "{{.PROJ}}" ]; then
@@ -28,11 +29,37 @@ tasks:
             exit 1
           fi
         fi
-    silent: true
 
-  _docker-build:
-    internal: true
+  # Assignment 1 - Local Execution (Without Docker)
+  execute-proj:
+    desc: Run the project locally with uv (`task execute-proj PROJ=<project-name>`)
     deps: [_validate]
+    silent: true
+    vars:
+      PROJ_DIR: 'assignments/{{.PROJ}}'
+    dir: '{{.PROJ_DIR}}' 
+    cmds:
+      - uv sync --package {{.PROJ}}
+      - uv pip install -e .
+      - uv run python src/main.py
+
+  # Assignment 2 - Docker Execution
+  execute-proj-docker:
+    desc: Build and run the project in Docker (`task execute-proj-docker PROJ=<project-name>`)
+    deps: [_validate]
+    silent: true
+    vars:
+      PROJ_DIR: 'assignments/{{.PROJ}}'
+      IMG: '{{.PROJ}}'
+    dir: '{{.PROJ_DIR}}'
+    cmds:
+      - docker build -t {{.IMG}} .
+      - docker run --rm -p 8501:8501 {{.IMG}}
+
+  build:
+    desc: Build the Docker container (`task build PROJ=<project-name>`)
+    deps: [_validate]
+    silent: true
     vars:
       PROJ_DIR: 'assignments/{{.PROJ}}'
       # IMG variable is redundant but it makes it clear that the Docker image name == project name
@@ -44,9 +71,10 @@ tasks:
     cmds:
       - docker build -t {{.IMG}} .
 
-  _docker-run:
-    internal: true
+  run:
+    desc: Run the Docker container (`task run PROJ=<project-name>`)
     deps: [_validate]
+    silent: true
     vars:
       PROJ_DIR: 'assignments/{{.PROJ}}'
       IMG: '{{.PROJ}}'
@@ -54,55 +82,12 @@ tasks:
     cmds:
       - docker run --rm -p 8501:8501 {{.IMG}}
 
-  _docker-clean:
-    internal: true
+  clean:
+    desc: Remove Docker image (`task clean PROJ=<project-name>`)
     deps: [_validate]
+    silent: true
     vars:
       PROJ_DIR: 'assignments/{{.PROJ}}'
       IMG: '{{.PROJ}}'
     cmds:
       - docker rmi {{.IMG}} || true
-
-  # Assignment 1 - Local Execution (Without Docker)
-  execute-proj:
-    desc: Run the project locally with uv (`task execute-proj PROJ=<project-name>`)
-    deps: [_validate]
-    vars:
-      PROJ_DIR: 'assignments/{{.PROJ}}'
-    dir: '{{.PROJ_DIR}}' 
-    cmds:
-      - uv sync --package {{.PROJ}}
-      - uv pip install -e .
-      - uv run python src/main.py
-    silent: true
-
-  # Assignment 2 - Docker Execution
-  execute-proj-docker:
-    desc: Build and run the project in Docker (`task execute-proj-docker PROJ=<project-name>`)
-    deps: [_validate]
-    vars:
-      PROJ_DIR: 'assignments/{{.PROJ}}'
-      IMG: '{{.PROJ}}'
-    dir: '{{.PROJ_DIR}}'    
-    # The internal helper docker commands run in their own individual task contexts
-    # In order to run both build and run in succession, the two have to be in the same "task" running context
-    # Which is why the cmds are explicit in this task
-    cmds:
-      - docker build -t {{.IMG}} .
-      - docker run --rm -p 8501:8501 {{.IMG}}
-    silent: true
-
-  build:
-    desc: Build the Docker container (`task build PROJ=<project-name>`)
-    deps: [_docker-build]
-    silent: true
-
-  run:
-    desc: Run the Docker container (`task run PROJ=<project-name>`)
-    deps: [_docker-run]
-    silent: true
-
-  clean:
-    desc: Remove Docker image (`task clean PROJ=<project-name>`)
-    deps: [_docker-clean]
-    silent: true
