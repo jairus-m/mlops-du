@@ -14,7 +14,7 @@ fastapi-movie/
 │   └── models/                     # Model file
 ├── src/
 │   ├── schemas/                    # Pydantic Models
-│   ├── schemas/                    # ML Training
+│   ├── train/                      # ML Training
 │   ├── utils/                      # Utils
 │   └── main.py                     # Main entry point to run FastAPI App
 ├── Dockerfile                      # Docker container config
