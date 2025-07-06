@@ -38,6 +38,14 @@ Assignments are ran with [task](https://taskfile.dev/) which is a task runner/bu
     - Remove Docker Image: `task clean PROJ=movie-sentiment`
     - Build + Run Docker Container: `task execute-proj-docker PROJ=movie-sentiment`
 
+### Assignment 3: Use FastAPI to Serve Movie Sentiment ML Model
+- `fastapi-movie/`
+  - Run commands:
+    - Build Docker Container: `task build PROJ=fastapi-movie`
+    - Run Docker Container: `task run PROJ=fastapi-movie`
+    - Remove Docker Image: `task clean PROJ=fastapi-movie`
+    - Build + Run Docker Container: `task execute-proj-docker PROJ=fastapi-movie`
+
 ---
 __Note__: To export a `requirements.txt` file that lists out all the dependencies within `assignments/<project-name>`, run the following from the root:
 ```bash
