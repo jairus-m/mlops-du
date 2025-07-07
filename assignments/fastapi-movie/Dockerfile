@@ -12,6 +12,9 @@ COPY . .
 # Install dependencies
 RUN uv sync
 
+# Pre-train the model during build time
+RUN uv run python -c "from src.ml.train_model import run_training; run_training()"
+
 # Expose port (reusing Streamlit "default"port since Taskfile.yml is using it)
 EXPOSE 8501
 
