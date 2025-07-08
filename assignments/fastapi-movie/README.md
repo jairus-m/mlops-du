@@ -14,9 +14,9 @@ fastapi-movie/
 │   └── models/                     # Model file
 ├── src/
 │   ├── schemas/                    # Pydantic Models
-│   ├── train/                      # ML Training
+│   ├── ml/                         # ML training / initialization
 │   ├── utils/                      # Utils
-│   └── main.py                     # Main entry point to run FastAPI App
+│   └── main.py                     # Main entry point to run FastAPI app
 ├── Dockerfile                      # Docker container config
 ├── pyproject.toml                  # Python dependencies
 └── README.md                       # Submission docs 
@@ -67,17 +67,17 @@ task clean PROJ=fastapi-movie
 
 <img src="assets/images/docs.png" width="1000"/>
 
-#### Predict
+#### Predict Sentiment
 - http://0.0.0.0:8501/predict
 
 <img src="assets/images/post__predict.png" width="1000"/>
 
-#### Predict with Probabilities
+#### Predict Sentiment with Probability
 - http://0.0.0.0:8501/predict_proba
 
 <img src="assets/images/post__predict_proba.png" width="1000"/>
 
-#### Example Reviews
+#### Example Movie Reviews
 - http://0.0.0.0:8501/example
 
 <img src="assets/images/get__example.png" width="1000"/>
