@@ -22,29 +22,29 @@ The entire monorepo dependency graph is managed by [uv](https://docs.astral.sh/u
 
 ## Execution
 Assignments are ran with [task](https://taskfile.dev/) which is a task runner/build tool that provides a simple and consistent way to execute each assignment's main entry point script or various other CLI commands.
-- __Note:__ All subrepos are under `assignments/` and are also reffered to as "projects". For example, `mlops-du/assignments/movie-sentiment` is both a subrepo and project.
+- __Note:__ All subrepos are under `assignments/` and are also reffered to as "projects". For example, `mlops-du/assignments/movie-sentiment-streamlit` is both a subrepo and project.
 
 ---
 
 ### Assignment 1: Movie Sentiment ML Pipeline & Streamlit App
-- `movie-sentiment/`
-  - Run command: `task execute-proj PROJ=movie-sentiment`
+- `movie-sentiment-streamlit/`
+  - Run command: `task execute-proj PROJ=movie-sentiment-streamlit`
 
 ### Assignment 2: Use Docker to Run Movie Sentiment ML Pipeline & Streamlit App
-- `movie-sentiment/`
+- `movie-sentiment-streamlit/`
   - Run commands:
-    - Build Docker Container: `task build PROJ=movie-sentiment`
-    - Run Docker Container: `task run PROJ=movie-sentiment`
-    - Remove Docker Image: `task clean PROJ=movie-sentiment`
-    - Build + Run Docker Container: `task execute-proj-docker PROJ=movie-sentiment`
+    - Build Docker Container: `task build PROJ=movie-sentiment-streamlit`
+    - Run Docker Container: `task run PROJ=movie-sentiment-streamlit`
+    - Remove Docker Image: `task clean PROJ=movie-sentiment-streamlit`
+    - Build + Run Docker Container: `task execute-proj-docker PROJ=movie-sentiment-streamlit`
 
 ### Assignment 3: Use FastAPI to Serve Movie Sentiment ML Model
-- `fastapi-movie/`
+- `movie-sentiment-fastapi/`
   - Run commands:
-    - Build Docker Container: `task build PROJ=fastapi-movie`
-    - Run Docker Container: `task run PROJ=fastapi-movie`
-    - Remove Docker Image: `task clean PROJ=fastapi-movie`
-    - Build + Run Docker Container: `task execute-proj-docker PROJ=fastapi-movie`
+    - Build Docker Container: `task build PROJ=movie-sentiment-fastapi`
+    - Run Docker Container: `task run PROJ=movie-sentiment-fastapi`
+    - Remove Docker Image: `task clean PROJ=movie-sentiment-fastapi`
+    - Build + Run Docker Container: `task execute-proj-docker PROJ=movie-sentiment-fastapi`
 
 ---
 __Note__: To export a `requirements.txt` file that lists out all the dependencies within `assignments/<project-name>`, run the following from the root:

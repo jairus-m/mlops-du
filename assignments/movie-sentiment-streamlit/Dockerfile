@@ -4,7 +4,7 @@ FROM python:3.12-slim
 RUN pip install uv
 
 # Set wd
-WORKDIR /movie-sentiment
+WORKDIR /movie-sentiment-streamlit
 
 # Copy project files
 COPY . .

@@ -5,7 +5,7 @@ An ML app that analyzes movie reviews and predicts whether they're positive or n
 ## Project Structure
 
 ```
-movie-sentiment/
+movie-sentiment-streamlit/
 ├── assets/
 │   ├── data/                       # Dataset directory
 │   ├── docs/                       # Documentation
@@ -31,29 +31,29 @@ For prerequisites, installation instructions, and setup details, please see the 
 
 #### Without Docker
 ```bash
-task execute-proj PROJ=movie-sentiment
+task execute-proj PROJ=movie-sentiment-streamlit
 ```
 
 #### With Docker
 To run each Docker command step-by-step:
 ```bash
 # Build Docker Container
-task build PROJ=movie-sentiment
+task build PROJ=movie-sentiment-streamlit
 
 # Run Docker Container
-task run PROJ=movie-sentiment
+task run PROJ=movie-sentiment-streamlit
 
 # Clean up: Remove Docker Image
-task clean PROJ=movie-sentiment
+task clean PROJ=movie-sentiment-streamlit
 ```
 
 To run Docker build and run in one command:
 ```bash
 # Build and run Docker Container
-task execute-proj-docker PROJ=movie-sentiment
+task execute-proj-docker PROJ=movie-sentiment-streamlit
 
 # Clean up: Remove Docker Image
-task clean PROJ=movie-sentiment
+task clean PROJ=movie-sentiment-streamlit
 ```
 
 **Run Notes:** 

@@ -4,7 +4,7 @@ FROM python:3.12-slim
 RUN pip install uv
 
 # Set wd
-WORKDIR /fastapi-movie
+WORKDIR /movie-sentiment-fastapi
 
 # Copy project files
 COPY . .
