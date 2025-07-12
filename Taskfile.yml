@@ -41,7 +41,12 @@ tasks:
     cmds:
       - uv sync --package {{.PROJ}}
       - uv pip install -e .
-      - uv run python src/main.py
+      - |
+        if [ "{{.PROJ}}" = "fastapi-movie" ]; then
+          uv run uvicorn src.main:app
+        else
+          uv run python src/main.py
+        fi
 
   # Assignment 2 - Docker Execution
   execute-proj-docker:
@@ -91,3 +96,15 @@ tasks:
       IMG: '{{.PROJ}}'
     cmds:
       - docker rmi {{.IMG}} || true
+
+  clean-artifacts:
+    desc: Delete .log, .pkl, and .csv from /assets (`task clean-artifacts PROJ=<project-name>`)
+    deps: [_validate]
+    silent: true
+    vars:
+      PROJ_DIR: 'assignments/{{.PROJ}}'
+    cmds:
+      - rm -rf {{.PROJ_DIR}}/assets/logs/*.log
+      - rm -rf {{.PROJ_DIR}}/assets/models/*.pkl
+      - rm -rf {{.PROJ_DIR}}/assets/data/*.csv
+      - echo "Artifacts cleaned successfully!"
