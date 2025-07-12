@@ -1,5 +1,5 @@
 [project]
-name = "movie-sentiment"
+name = "movie-sentiment-streamlit"
 version = "0.1.0"
 description = "Training and serving a sentiment analysis model for movie reviews."
 readme = "README.md"
