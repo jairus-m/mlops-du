@@ -1,5 +1,5 @@
 [project]
-name = "fastapi-movie"
+name = "movie-sentiment-fastapi"
 version = "0.1.0"
 description = "Serving a sentiment analysis model via FastAPI."
 readme = "README.md"

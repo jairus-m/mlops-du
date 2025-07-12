@@ -5,7 +5,7 @@ A REST API that performs sentiment analysis on movie reviews using a machine lea
 
 ## Project Structure
 ```bash
-fastapi-movie/
+movie-sentiment-fastapi/
 ├── assets/
 │   ├── data/                       # Dataset directory
 │   ├── docs/                       # Documentation
@@ -29,29 +29,29 @@ For prerequisites, installation instructions, and setup details, please see the 
 
 #### Without Docker
 ```bash
-task execute-proj PROJ=fastapi-movie
+task execute-proj PROJ=movie-sentiment-fastapi
 ```
 
 #### With Docker
 To run each Docker command step-by-step:
 ```bash
 # Build Docker Container
-task build PROJ=fastapi-movie
+task build PROJ=movie-sentiment-fastapi
 
 # Run Docker Container
-task run PROJ=fastapi-movie
+task run PROJ=movie-sentiment-fastapi
 
 # Clean up: Remove Docker Image
-task clean PROJ=fastapi-movie
+task clean PROJ=movie-sentiment-fastapi
 ```
 
 To run Docker build and run in one command:
 ```bash
 # Build and run Docker Container
-task execute-proj-docker PROJ=fastapi-movie
+task execute-proj-docker PROJ=movie-sentiment-fastapi
 
 # Clean up: Remove Docker Image
-task clean PROJ=fastapi-movie
+task clean PROJ=movie-sentiment-fastapi
 ```
 
 ## API Endpoints
