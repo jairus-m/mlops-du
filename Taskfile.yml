@@ -42,8 +42,8 @@ tasks:
       - uv sync --package {{.PROJ}}
       - uv pip install -e .
       - |
-        if [ "{{.PROJ}}" = "fastapi-movie" ]; then
-          uv run uvicorn src.main:app
+        if [ "{{.PROJ}}" = "movie-sentiment-fastapi" ]; then
+          uv run uvicorn src.main:app --port 1998
         else
           uv run python src/main.py
         fi
