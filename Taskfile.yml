@@ -37,15 +37,16 @@ tasks:
     silent: true
     vars:
       PROJ_DIR: 'assignments/{{.PROJ}}'
+      PORT: '{{.PORT | default 8501}}'
     dir: '{{.PROJ_DIR}}' 
     cmds:
       - uv sync --package {{.PROJ}}
       - uv pip install -e .
       - |
         if [ "{{.PROJ}}" = "movie-sentiment-fastapi" ]; then
-          uv run uvicorn src.main:app --port 1998
+          uv run uvicorn src.main:app --port {{.PORT}}
         else
-          uv run python src/main.py
+          uv run python src/main.py --server.port {{.PORT}}
         fi
 
   # Assignment 2 - Docker Execution
@@ -56,10 +57,12 @@ tasks:
     vars:
       PROJ_DIR: 'assignments/{{.PROJ}}'
       IMG: '{{.PROJ}}'
+      PORT: '{{.PORT | default 8501}}'
     dir: '{{.PROJ_DIR}}'
     cmds:
-      - docker build -t {{.IMG}} .
-      - docker run --rm -p 8501:8501 {{.IMG}}
+      - docker build --build-arg PORT={{.PORT}} -t {{.IMG}} .
+      - docker run --rm -p {{.PORT}}:{{.PORT}} {{.IMG}}
+      - defer: {task: clean}
 
   build:
     desc: Build the Docker container (`task build PROJ=<project-name>`)
@@ -69,12 +72,13 @@ tasks:
       PROJ_DIR: 'assignments/{{.PROJ}}'
       # IMG variable is redundant but it makes it clear that the Docker image name == project name
       IMG: '{{.PROJ}}'
+      PORT: '{{.PORT | default 8501}}'
     # Can override PROJ_DIR in CLI 
     # i.e task execute-proj PROJ=<project-name> PROJ_DIR=<project-directory>  
   
     dir: '{{.PROJ_DIR}}'
     cmds:
-      - docker build -t {{.IMG}} .
+      - docker build --build-arg PORT={{.PORT}} -t {{.IMG}} .
 
   run:
     desc: Run the Docker container (`task run PROJ=<project-name>`)
@@ -83,9 +87,11 @@ tasks:
     vars:
       PROJ_DIR: 'assignments/{{.PROJ}}'
       IMG: '{{.PROJ}}'
+      PORT: '{{.PORT | default 8501}}'
     dir: '{{.PROJ_DIR}}'
     cmds:
-      - docker run --rm -p 8501:8501 {{.IMG}}
+      - docker run --rm -p {{.PORT}}:{{.PORT}} {{.IMG}}
+      - defer: {task: clean}
 
   clean:
     desc: Remove Docker image (`task clean PROJ=<project-name>`)
