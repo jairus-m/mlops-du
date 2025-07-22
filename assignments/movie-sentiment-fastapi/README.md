@@ -54,12 +54,16 @@ task execute-proj-docker PROJ=movie-sentiment-fastapi
 task clean PROJ=movie-sentiment-fastapi
 ```
 
+Once the FastApi App is running, open up postman locally, and enter the base url (http://0.0.0.0:8501/). From here, you can send `GET` or `POST` requests to the following API endpoints:
+
 ## API Endpoints
 
 - `GET /`: Root endpoint that returns a welcome message
 - `GET /health`: Health check endpoint
 - `POST /predict`: Predicts sentiment (positive/negative) for a given review text
+  - Request body is a `JSON` object in the form of {'text': 'My movie review..'}
 - `POST /predict_proba`: Predicts sentiment with probability score
+  - Request body is a `JSON` object in the form of {'text': 'My movie review..'}
 - `GET /example`: Returns a random movie review from the dataset
 
 #### Docs Site

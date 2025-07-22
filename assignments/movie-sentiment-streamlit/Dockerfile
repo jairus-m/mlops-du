@@ -16,7 +16,11 @@ RUN uv sync
 RUN uv pip install -e .
 
 # Expose Streamlit port (refer to https://docs.streamlit.io/deploy/tutorials/docker)
-EXPOSE 8501
+# Using PORT as an ARG to allow for overriding the port at build time
+ARG PORT=8501
+ENV PORT=${PORT}
+EXPOSE ${PORT}
 
 # Default command
-CMD ["uv", "run", "python", "src/main.py"]
+# Using exec to handle signals properly and enable variable expansion
+CMD ["sh", "-c", "exec uv run streamlit run src/main.py --server.port ${PORT}"]
