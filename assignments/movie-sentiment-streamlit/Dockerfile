@@ -23,4 +23,4 @@ EXPOSE ${PORT}
 
 # Default command
 # Using exec to handle signals properly and enable variable expansion
-CMD ["sh", "-c", "exec uv run streamlit run src/main.py --server.port ${PORT}"]
+  CMD ["sh", "-c", "exec uv run streamlit run src/streamlit/app.py --server.port ${PORT}"]
