@@ -2,6 +2,7 @@
 FastAPI Movie Sentiment Analysis API
 
 This API provides endpoints for sentiment analysis of movie reviews.
+It is environment-aware and can load assets from local disk or S3.
 """
 
 import pandas as pd
@@ -13,8 +14,7 @@ from src.utils import (
     log_middleware_request,
     log_middleware_response,
     download_kaggle_dataset,
-    MODEL_PATH,
-    DATA_PATH,
+    get_asset_path,
 )
 from .schemas import (
     PredictRequest,
@@ -27,12 +27,12 @@ from src.sklearn_training.initialize_model import initialize_model
 app = FastAPI()
 
 # Middleware to log requests and responses
-# Refer to https://github.com/fastapi/fastapi/issues/678 for more info on implementation
 app.add_middleware(BaseHTTPMiddleware, dispatch=log_middleware_request)
 app.add_middleware(BaseHTTPMiddleware, dispatch=log_middleware_response)
 
-# Initialize model and handles training if model does not exist
-model = initialize_model(MODEL_PATH)
+# Initialize model. This function now handles its own path resolution
+# (local vs. S3) and will trigger training if the model is not found.
+model = initialize_model()
 logger.info("FastAPI App initialized successfully!")
 
 
@@ -60,10 +60,10 @@ async def health_check() -> dict:
         assert callable(model.predict)
         assert callable(model.predict_proba)
 
+        # In a real-world scenario, you might also check connectivity to S3
+        # or other downstream services here.
         return {
             "status": "healthy",
-            "model_loaded": MODEL_PATH.exists(),
-            "dataset_available": DATA_PATH.exists(),
             "timestamp": datetime.utcnow().isoformat(),
         }
     except Exception as e:
@@ -125,15 +125,23 @@ async def example() -> ExampleResponse:
         ExampleResponse object
     """
     try:
-        df = pd.read_csv(DATA_PATH)
+        # Get the path to the dataset, which may be downloaded from S3
+        data_path = get_asset_path("data")
+        df = pd.read_csv(data_path)
         random_review = df.sample(n=1)["review"].iloc[0]
         return {"review": random_review}
-    except FileNotFoundError:
-        logger.info("Dataset file does not exist. Downloading dataset...")
-        download_kaggle_dataset()
-        df = pd.read_csv(DATA_PATH)
-        random_review = df.sample(n=1)["review"].iloc[0]
-        return {"review": random_review}
+    except (FileNotFoundError, SystemExit):
+        # Handle case where data is not found locally or in S3
+        logger.info("Dataset file not found. Attempting to download from Kaggle...")
+        try:
+            download_kaggle_dataset()
+            data_path = get_asset_path("data")
+            df = pd.read_csv(data_path)
+            random_review = df.sample(n=1)["review"].iloc[0]
+            return {"review": random_review}
+        except Exception as e:
+            logger.error(f"Failed to download or load data from Kaggle: {e}")
+            raise HTTPException(status_code=500, detail="Could not retrieve example review.")
     except Exception as e:
         logger.error(f"Error getting random review: {str(e)}")
         raise HTTPException(status_code=500, detail="Error retrieving example review")
@@ -146,3 +154,10 @@ async def favicon():
     to prevent 404 Error logs.
     """
     return Response(status_code=204, content="No favicon here!")
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+

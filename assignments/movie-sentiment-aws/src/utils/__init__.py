@@ -1,21 +1,217 @@
-from .config import (
-    DATA_PATH,
-    MODEL_PATH,
-    KAGGLE_DATASET_PATH,
-    KAGGLE_DATASET_NAME,
-    LOG_PATH,
-)
-from .logger import logger
-from .kaggle import download_kaggle_dataset
-from .middleware import log_middleware_request, log_middleware_response
+"""
+Utility functions for the movie sentiment analysis project.
+
+This module handles environment-aware configuration, logging, and asset management
+(fetching from local disk in development or S3 in production).
+"""
+
+import logging
+import os
+import sys
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
+from typing import Dict, Any
+
+import boto3
+import yaml
+from botocore.exceptions import ClientError
+from dotenv import load_dotenv
+from fastapi import Request, Response
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Define project root directory
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def load_config() -> Dict[str, Any]:
+    """
+    Loads configuration from config.yaml based on the APP_ENV environment variable.
+
+    Merges default settings with environment-specific settings.
+    Exits the application if the configuration cannot be loaded.
+
+    Returns:
+        Dict[str, Any]: The fully loaded configuration dictionary.
+    """
+    env = os.getenv("APP_ENV", "development")
+    config_path = PROJECT_ROOT / "config.yaml"
+
+    try:
+        with open(config_path, "r") as f:
+            full_config = yaml.safe_load(f)
+
+        # Start with default config
+        config = full_config.get("default", {})
+        # Merge in environment-specific config
+        env_config = full_config.get(env, {})
+
+        # Deep merge for nested dictionaries like 'paths'
+        for key, value in env_config.items():
+            if isinstance(value, dict) and isinstance(config.get(key), dict):
+                config[key].update(value)
+            else:
+                config[key] = value
+
+        config["env"] = env
+        config["project_root"] = PROJECT_ROOT
+        return config
+    except FileNotFoundError:
+        logging.critical(f"Config file not found at {config_path}")
+        sys.exit(1)
+    except Exception as e:
+        logging.critical(f"Error loading configuration: {e}")
+        sys.exit(1)
+
+
+def setup_logger(log_path_str: str) -> logging.Logger:
+    """
+    Sets up a rotating file logger and a console logger.
+
+    Args:
+        log_path_str (str): The path for the log file from the config.
+
+    Returns:
+        logging.Logger: The configured logger instance.
+    """
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+
+    # Ensure log directory exists
+    log_path = PROJECT_ROOT / log_path_str
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # File handler
+    fh = RotatingFileHandler(log_path, maxBytes=5 * 1024 * 1024, backupCount=5)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+
+    # Console handler
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+    return logger
+
+
+# --- Initialize and export config and logger ---
+config = load_config()
+logger = setup_logger(config["paths"]["logs"])
+logger.info(f"Configuration loaded for '{config['env']}' environment.")
+# ---
+
+
+def download_from_s3(bucket: str, key: str, local_path: Path) -> bool:
+    """
+    Downloads a file from an S3 bucket to a local path.
+
+    Args:
+        bucket (str): The S3 bucket name.
+        key (str): The key (path) of the object in the bucket.
+        local_path (Path): The local destination path.
+
+    Returns:
+        bool: True if download was successful or file already exists, False otherwise.
+    """
+    if local_path.exists():
+        logger.info(f"File {local_path} already exists locally. Skipping S3 download.")
+        return True
+    try:
+        s3 = boto3.client("s3")
+        logger.info(f"Downloading s3://{bucket}/{key} to {local_path}...")
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+        s3.download_file(bucket, key, str(local_path))
+        logger.info("Download complete.")
+        return True
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "404":
+            logger.error(f"S3 object not found: s3://{bucket}/{key}")
+        else:
+            logger.error(f"Error downloading from S3: {e}")
+        return False
+    except Exception as e:
+        logger.error(f"An unexpected error occurred during S3 download: {e}")
+        return False
+
+
+def get_asset_path(asset_key: str) -> Path:
+    """
+    Returns the local filesystem path for a given asset key (e.g., 'model', 'data').
+
+    In 'production' mode, it downloads the asset from S3 to a temporary local
+    directory (.tmp) and returns the path to the local copy.
+    In 'development' mode, it returns the direct local path from the config.
+
+    Args:
+        asset_key (str): The key for the asset, as defined in config.yaml.
+
+    Returns:
+        Path: The local, ready-to-use path for the asset.
+    """
+    path_info = config["paths"][asset_key]
+
+    if config["env"] == "production":
+        bucket = os.getenv("S3_BUCKET_NAME")
+        # In prod, the path_info is the S3 key
+        s3_key = path_info
+        if not bucket or not s3_key:
+            logger.critical("S3 bucket name or key is not configured in environment.")
+            sys.exit(1)
+
+        # Store downloaded assets in a temporary directory
+        local_path = PROJECT_ROOT / ".tmp" / s3_key
+        if not download_from_s3(bucket, s3_key, local_path):
+            logger.critical(f"Failed to retrieve required asset {s3_key} from S3.")
+            sys.exit(1)
+        return local_path
+    else:
+        # In dev, the path is a direct local path
+        return PROJECT_ROOT / path_info
+
+
+def download_kaggle_dataset() -> None:
+    """
+    Downloads the dataset from Kaggle using credentials and config.
+    """
+    import kaggle
+    try:
+        dataset_path = config["kaggle"]["dataset_path"]
+        download_path_str = config["paths"]["data"]
+        download_path = (PROJECT_ROOT / download_path_str).parent
+
+        logger.info(f"Downloading dataset from Kaggle: {dataset_path}")
+        kaggle.api.authenticate()
+        kaggle.api.dataset_download_files(
+            dataset_path, path=download_path, unzip=True
+        )
+        logger.info(f"Dataset downloaded and unzipped to {download_path}")
+    except Exception as e:
+        logger.error(f"Error downloading dataset from Kaggle: {str(e)}")
+        raise
+
+
+async def log_middleware_request(request: Request, call_next) -> Response:
+    """Middleware to log incoming requests."""
+    logger.info(f"Request: {request.method} {request.url}")
+    response = await call_next(request)
+    return response
+
+
+async def log_middleware_response(request: Request, call_next) -> Response:
+    """Middleware to log outgoing responses."""
+    response = await call_next(request)
+    logger.info(f"Response status: {response.status_code}")
+    return response
 
 __all__ = [
-    "DATA_PATH",
-    "MODEL_PATH",
-    "LOG_PATH",
-    "KAGGLE_DATASET_PATH",
-    "KAGGLE_DATASET_NAME",
+    "config",
     "logger",
+    "download_from_s3",
+    "get_asset_path",
     "download_kaggle_dataset",
     "log_middleware_request",
     "log_middleware_response",
