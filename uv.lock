@@ -5,6 +5,7 @@ requires-python = ">=3.12"
 [manifest]
 members = [
     "mlops-du",
+    "movie-sentiment-aws",
     "movie-sentiment-fastapi",
     "movie-sentiment-streamlit",
 ]
@@ -309,6 +310,40 @@ dev = [
 
 [package.metadata]
 requires-dist = [{ name = "ruff", marker = "extra == 'dev'", specifier = ">=0.12.0" }]
+provides-extras = ["dev"]
+
+[[package]]
+name = "movie-sentiment-aws"
+version = "0.1.0"
+source = { virtual = "assignments/movie-sentiment-aws" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "joblib" },
+    { name = "kagglehub" },
+    { name = "pandas" },
+    { name = "pyyaml" },
+    { name = "scikit-learn" },
+    { name = "streamlit" },
+    { name = "uvicorn" },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.115.14" },
+    { name = "joblib", specifier = ">=1.5.1" },
+    { name = "kagglehub", specifier = ">=0.3.12" },
+    { name = "pandas", specifier = ">=2.3.0" },
+    { name = "pyyaml", specifier = ">=6.0.1" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.12.0" },
+    { name = "scikit-learn", specifier = ">=1.7.0" },
+    { name = "streamlit", specifier = ">=1.46.0" },
+    { name = "uvicorn", specifier = ">=0.35.0" },
+]
 provides-extras = ["dev"]
 
 [[package]]

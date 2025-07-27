@@ -1,0 +1,27 @@
+# Configuration file for movie sentiment analysis project
+paths:
+  data: "assets/data/IMDB Dataset.csv"
+  model: "assets/models/sentiment_model.pkl"
+  logs: "assets/logs/app.log"
+
+kaggle:
+  dataset_path: "lakshmi25npathi/imdb-dataset-of-50k-movie-reviews"
+  dataset_name: "IMDB Dataset.csv"
+
+# Environment-specific overrides
+environments:
+  development:
+    paths:
+      data: "assets/data/IMDB Dataset.csv"
+      model: "assets/models/sentiment_model.pkl"
+      logs: "assets/logs/app.log"
+    kaggle:
+      dataset_name: "IMDB Dataset.csv"
+  
+  production:
+    paths:
+      data: "<somewhere-in-s3>"
+      model: "<somewhere-in-s3>"
+      logs: "<somewhere-in-s3>"
+    kaggle:
+      dataset_path: "lakshmi25npathi/imdb-dataset-of-50k-movie-reviews"
