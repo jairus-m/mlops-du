@@ -11,7 +11,8 @@ import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Dict, Any
-
+import kagglehub
+import shutil
 import boto3
 import yaml
 from botocore.exceptions import ClientError
@@ -175,20 +176,46 @@ def get_asset_path(asset_key: str) -> Path:
 
 def download_kaggle_dataset() -> None:
     """
-    Downloads the dataset from Kaggle using credentials and config.
+    Downloads the dataset from Kaggle using kagglehub.
     """
-    import kaggle
     try:
         dataset_path = config["kaggle"]["dataset_path"]
-        download_path_str = config["paths"]["data"]
-        download_path = (PROJECT_ROOT / download_path_str).parent
-
+        dataset_name = config["kaggle"]["dataset_name"]
+        
+        # In production, save to .tmp directory for S3 upload
+        if config["env"] == "production":
+            download_path = PROJECT_ROOT / ".tmp" / "data"
+        else:
+            # In development, use the config path
+            download_path_str = config["paths"]["data"]
+            download_path = (PROJECT_ROOT / download_path_str).parent
+        
         logger.info(f"Downloading dataset from Kaggle: {dataset_path}")
-        kaggle.api.authenticate()
-        kaggle.api.dataset_download_files(
-            dataset_path, path=download_path, unzip=True
-        )
-        logger.info(f"Dataset downloaded and unzipped to {download_path}")
+        
+        # Download using kagglehub
+        path = kagglehub.dataset_download(dataset_path)
+        
+        # Handle path - kagglehub returns a list or string
+        downloaded_path = Path(path[0] if isinstance(path, list) else path)
+        
+        # Ensure the destination directory exists
+        download_path.mkdir(parents=True, exist_ok=True)
+        
+        # Look for the CSV file directly in the downloaded directory
+        csv_file = downloaded_path / dataset_name
+        destination_file = download_path / dataset_name
+        
+        if csv_file.exists():
+            shutil.copy(csv_file, destination_file)
+        else:
+            # Fallback: search for any CSV file
+            csv_files = list(downloaded_path.glob("*.csv"))
+            if csv_files:
+                shutil.copy(csv_files[0], destination_file)
+            else:
+                raise FileNotFoundError("No CSV file found in downloaded dataset")
+        
+        logger.info(f"Dataset downloaded and saved to {destination_file}")
     except Exception as e:
         logger.error(f"Error downloading dataset from Kaggle: {str(e)}")
         raise
