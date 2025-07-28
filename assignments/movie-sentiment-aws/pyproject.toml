@@ -8,12 +8,13 @@ dependencies = [
     "scikit-learn",
     "pandas",
     "pyyaml",
-    "kaggle",
+    "kagglehub",
     "joblib",
     "fastapi",
     "uvicorn",
     "python-dotenv",
     "boto3",
+    "streamlit",
 ]
 
 [project.optional-dependencies]

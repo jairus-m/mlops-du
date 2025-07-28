@@ -1,1 +1,8 @@
 .env
+terraform.tfvars
+deployer-key.pem
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform.lock.hcl
+.terraform/
