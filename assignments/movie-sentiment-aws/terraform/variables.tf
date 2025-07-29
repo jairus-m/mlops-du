@@ -23,11 +23,6 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "repository_url" {
-  description = "The HTTPS URL of the Git repository to be cloned onto the EC2 instances."
-  type        = string
-}
-
 variable "project_path" {
   description = "The relative path from the repository root to the project directory."
   type        = string
