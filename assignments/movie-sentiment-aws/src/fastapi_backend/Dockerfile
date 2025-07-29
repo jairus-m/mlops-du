@@ -1,0 +1,35 @@
+# Dockerfile for the FastAPI Backend
+
+# Use a slim, official Python runtime as a parent image
+FROM python:3.12-slim
+
+# Set environment variables for non-interactive installation
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Install 'uv' for faster dependency management
+RUN pip install uv
+
+# Copy the dependency definition file
+COPY pyproject.toml ./
+
+# Install dependencies using uv
+# This installs all dependencies listed in pyproject.toml
+RUN uv pip install --system --no-cache -r pyproject.toml
+
+# Copy the application source code, config, and assets into the container
+COPY ./src/fastapi_backend ./src/fastapi_backend
+COPY ./src/utils ./src/utils
+COPY ./config.yaml ./config.yaml
+COPY ./assets ./assets
+
+# Expose the port the app runs on
+EXPOSE 8000
+
+# Define the command to run the application
+# This command starts the Uvicorn server, making the API accessible.
+# It's crucial to set the host to "0.0.0.0" to allow connections from outside the container.
+CMD ["uvicorn", "src.fastapi_backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -13,16 +13,14 @@ from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 import joblib
-import boto3
-from botocore.exceptions import ClientError
 
 from src.utils import (
     logger,
-    download_kaggle_dataset,
-    get_asset_path,
     config,
     PROJECT_ROOT,
+    upload_to_s3,
 )
+from .data_loader import download_kaggle_dataset
 
 pd.set_option("future.no_silent_downcasting", True)
 
@@ -78,29 +76,16 @@ def save_model(pipeline: Pipeline) -> None:
     model_path_info = config["paths"]["model"]
 
     if env == "production":
-        bucket = os.getenv("S3_BUCKET_NAME")
-        s3_key = model_path_info  # In prod, this is the S3 key
-        if not bucket or not s3_key:
-            logger.critical("S3_BUCKET_NAME or model key not configured for production.")
-            return
-
-        # Save to a temporary local file first
-        temp_dir = PROJECT_ROOT / ".tmp"
+        # Save to a temporary local file first for uploading
+        temp_dir = PROJECT_ROOT / "assets"
         temp_dir.mkdir(exist_ok=True)
-        local_path = temp_dir / Path(s3_key).name
+        local_path = temp_dir / Path(model_path_info).name
         logger.info(f"Saving model temporarily to {local_path} for S3 upload...")
         joblib.dump(pipeline, local_path)
 
-        # Upload to S3
-        try:
-            s3 = boto3.client("s3")
-            logger.info(f"Uploading model to s3://{bucket}/{s3_key}...")
-            s3.upload_file(str(local_path), bucket, s3_key)
-            logger.info("Upload to S3 successful!")
-        except ClientError as e:
-            logger.error(f"Failed to upload model to S3: {e}")
-        finally:
-            # Clean up the temporary file
+        # Upload to S3 and then clean up
+        s3_key = model_path_info
+        if upload_to_s3(local_path, s3_key):
             logger.info(f"Removing temporary model file: {local_path}")
             os.remove(local_path)
     else:
@@ -119,28 +104,20 @@ def run_training():
     """
     logger.info("Starting IMDB Sentiment Analysis Model Training...")
     try:
-        # Get the data path, downloading from Kaggle or S3 if necessary
-        data_path = get_asset_path("data")
-        X_train, y_train = load_and_preprocess_data(data_path)
+        # Download the dataset (which also handles S3 upload in prod)
+        local_data_path = download_kaggle_dataset()
 
+        # Load and preprocess the data from the local file
+        X_train, y_train = load_and_preprocess_data(local_data_path)
+
+        # Train the model
         pipeline = create_and_train_model_pipeline(X_train, y_train)
 
+        # Save the model (which also handles S3 upload in prod)
         save_model(pipeline)
 
         logger.info("Training process completed successfully!")
 
-    except (FileNotFoundError, SystemExit) as e:
-        logger.info(f"Dataset not found, attempting to download from Kaggle: {e}")
-        try:
-            download_kaggle_dataset()
-            data_path = get_asset_path("data")
-            X_train, y_train = load_and_preprocess_data(data_path)
-            pipeline = create_and_train_model_pipeline(X_train, y_train)
-            save_model(pipeline)
-            logger.info("Training process completed successfully after Kaggle download!")
-        except Exception as kaggle_e:
-            logger.error(f"Error during training after Kaggle download: {kaggle_e}")
-            raise
     except Exception as e:
         logger.error(f"An unexpected error occurred during training: {e}")
         raise

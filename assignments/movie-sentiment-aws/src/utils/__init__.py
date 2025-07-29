@@ -11,8 +11,6 @@ import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Dict, Any
-import kagglehub
-import shutil
 import boto3
 import yaml
 from botocore.exceptions import ClientError
@@ -106,6 +104,36 @@ logger.info(f"Configuration loaded for '{config['env']}' environment.")
 # ---
 
 
+def upload_to_s3(local_path: Path, s3_key: str) -> bool:
+    """
+    Uploads a local file to an S3 bucket.
+
+    Args:
+        local_path (Path): The path to the local file to upload.
+        s3_key (str): The destination key (path) in the S3 bucket.
+
+    Returns:
+        bool: True if upload was successful, False otherwise.
+    """
+    bucket = os.getenv("S3_BUCKET_NAME")
+    if not bucket:
+        logger.critical("S3_BUCKET_NAME is not configured. Cannot upload.")
+        return False
+
+    try:
+        s3 = boto3.client("s3")
+        logger.info(f"Uploading {local_path.name} to s3://{bucket}/{s3_key}...")
+        s3.upload_file(str(local_path), bucket, s3_key)
+        logger.info("Upload to S3 successful!")
+        return True
+    except ClientError as e:
+        logger.error(f"Failed to upload to S3: {e}")
+        return False
+    except Exception as e:
+        logger.error(f"An unexpected error occurred during S3 upload: {e}")
+        return False
+
+
 def download_from_s3(bucket: str, key: str, local_path: Path) -> bool:
     """
     Downloads a file from an S3 bucket to a local path.
@@ -144,7 +172,7 @@ def get_asset_path(asset_key: str) -> Path:
     Returns the local filesystem path for a given asset key (e.g., 'model', 'data').
 
     In 'production' mode, it downloads the asset from S3 to a temporary local
-    directory (.tmp) and returns the path to the local copy.
+    directory (assets) and returns the path to the local copy.
     In 'development' mode, it returns the direct local path from the config.
 
     Args:
@@ -157,68 +185,22 @@ def get_asset_path(asset_key: str) -> Path:
 
     if config["env"] == "production":
         bucket = os.getenv("S3_BUCKET_NAME")
-        # In prod, the path_info is the S3 key
         s3_key = path_info
         if not bucket or not s3_key:
             logger.critical("S3 bucket name or key is not configured in environment.")
             sys.exit(1)
 
-        # Store downloaded assets in a temporary directory
-        local_path = PROJECT_ROOT / ".tmp" / s3_key
+        local_path = PROJECT_ROOT / "assets" / Path(s3_key).name
         if not download_from_s3(bucket, s3_key, local_path):
             logger.critical(f"Failed to retrieve required asset {s3_key} from S3.")
             sys.exit(1)
         return local_path
     else:
-        # In dev, the path is a direct local path
-        return PROJECT_ROOT / path_info
-
-
-def download_kaggle_dataset() -> None:
-    """
-    Downloads the dataset from Kaggle using kagglehub.
-    """
-    try:
-        dataset_path = config["kaggle"]["dataset_path"]
-        dataset_name = config["kaggle"]["dataset_name"]
-        
-        # In production, save to .tmp directory for S3 upload
-        if config["env"] == "production":
-            download_path = PROJECT_ROOT / ".tmp" / "data"
-        else:
-            # In development, use the config path
-            download_path_str = config["paths"]["data"]
-            download_path = (PROJECT_ROOT / download_path_str).parent
-        
-        logger.info(f"Downloading dataset from Kaggle: {dataset_path}")
-        
-        # Download using kagglehub
-        path = kagglehub.dataset_download(dataset_path)
-        
-        # Handle path - kagglehub returns a list or string
-        downloaded_path = Path(path[0] if isinstance(path, list) else path)
-        
-        # Ensure the destination directory exists
-        download_path.mkdir(parents=True, exist_ok=True)
-        
-        # Look for the CSV file directly in the downloaded directory
-        csv_file = downloaded_path / dataset_name
-        destination_file = download_path / dataset_name
-        
-        if csv_file.exists():
-            shutil.copy(csv_file, destination_file)
-        else:
-            # Fallback: search for any CSV file
-            csv_files = list(downloaded_path.glob("*.csv"))
-            if csv_files:
-                shutil.copy(csv_files[0], destination_file)
-            else:
-                raise FileNotFoundError("No CSV file found in downloaded dataset")
-        
-        logger.info(f"Dataset downloaded and saved to {destination_file}")
-    except Exception as e:
-        logger.error(f"Error downloading dataset from Kaggle: {str(e)}")
-        raise
+        dev_path = PROJECT_ROOT / path_info
+        if not dev_path.exists():
+            logger.critical(f"Asset '{asset_key}' not found at local path: {dev_path}")
+            sys.exit(1)
+        return dev_path
 
 
 async def log_middleware_request(request: Request, call_next) -> Response:
@@ -234,12 +216,12 @@ async def log_middleware_response(request: Request, call_next) -> Response:
     logger.info(f"Response status: {response.status_code}")
     return response
 
+
 __all__ = [
     "config",
     "logger",
-    "download_from_s3",
     "get_asset_path",
-    "download_kaggle_dataset",
+    "upload_to_s3",
     "log_middleware_request",
     "log_middleware_response",
 ]

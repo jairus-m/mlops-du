@@ -5,16 +5,16 @@ This API provides endpoints for sentiment analysis of movie reviews.
 It is environment-aware and can load assets from local disk or S3.
 """
 
-import pandas as pd
+import random
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Response
 from starlette.middleware.base import BaseHTTPMiddleware
+import pandas as pd
 from src.utils import (
     logger,
     log_middleware_request,
     log_middleware_response,
-    download_kaggle_dataset,
-    get_asset_path,
+    get_asset_path
 )
 from .schemas import (
     PredictRequest,
@@ -22,7 +22,7 @@ from .schemas import (
     SentimentProbabilityResponse,
     ExampleResponse,
 )
-from src.sklearn_training.initialize_model import initialize_model
+from .model_loader import load_model
 
 app = FastAPI()
 
@@ -30,9 +30,8 @@ app = FastAPI()
 app.add_middleware(BaseHTTPMiddleware, dispatch=log_middleware_request)
 app.add_middleware(BaseHTTPMiddleware, dispatch=log_middleware_response)
 
-# Initialize model. This function now handles its own path resolution
-# (local vs. S3) and will trigger training if the model is not found.
-model = initialize_model()
+# Load the model on startup
+model = load_model()
 logger.info("FastAPI App initialized successfully!")
 
 
@@ -59,9 +58,6 @@ async def health_check() -> dict:
         assert hasattr(model, "predict_proba")
         assert callable(model.predict)
         assert callable(model.predict_proba)
-
-        # In a real-world scenario, you might also check connectivity to S3
-        # or other downstream services here.
         return {
             "status": "healthy",
             "timestamp": datetime.utcnow().isoformat(),
@@ -130,18 +126,6 @@ async def example() -> ExampleResponse:
         df = pd.read_csv(data_path)
         random_review = df.sample(n=1)["review"].iloc[0]
         return {"review": random_review}
-    except (FileNotFoundError, SystemExit):
-        # Handle case where data is not found locally or in S3
-        logger.info("Dataset file not found. Attempting to download from Kaggle...")
-        try:
-            download_kaggle_dataset()
-            data_path = get_asset_path("data")
-            df = pd.read_csv(data_path)
-            random_review = df.sample(n=1)["review"].iloc[0]
-            return {"review": random_review}
-        except Exception as e:
-            logger.error(f"Failed to download or load data from Kaggle: {e}")
-            raise HTTPException(status_code=500, detail="Could not retrieve example review.")
     except Exception as e:
         logger.error(f"Error getting random review: {str(e)}")
         raise HTTPException(status_code=500, detail="Error retrieving example review")
