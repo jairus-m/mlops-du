@@ -58,12 +58,12 @@ if st.button("Analyze Sentiment"):
                 if sentiment == "positive":
                     st.success(
                         f"**Positive 👍** sentiment with a confidence of "
-                        f"**{probability*100:.2f}%**"
+                        f"**{probability * 100:.2f}%**"
                     )
                 elif sentiment == "negative":
                     st.error(
                         f"**Negative 👎** sentiment with a confidence of "
-                        f"**{probability*100:.2f}%**"
+                        f"**{probability * 100:.2f}%**"
                     )
                 else:
                     st.warning("Could not determine the sentiment.")

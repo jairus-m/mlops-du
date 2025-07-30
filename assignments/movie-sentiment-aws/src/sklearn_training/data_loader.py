@@ -45,7 +45,9 @@ def download_kaggle_dataset() -> Path:
             shutil.copy(csv_file, destination_file)
             logger.info(f"Dataset '{dataset_name}' saved locally to {destination_file}")
         else:
-            raise FileNotFoundError(f"Specified dataset file '{dataset_name}' not found in download.")
+            raise FileNotFoundError(
+                f"Specified dataset file '{dataset_name}' not found in download."
+            )
 
         # If in production, upload the file to S3
         if env == "production":

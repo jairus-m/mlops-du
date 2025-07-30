@@ -5,7 +5,6 @@ This API provides endpoints for sentiment analysis of movie reviews.
 It is environment-aware and can load assets from local disk or S3.
 """
 
-import random
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -14,7 +13,7 @@ from src.utils import (
     logger,
     log_middleware_request,
     log_middleware_response,
-    get_asset_path
+    get_asset_path,
 )
 from .schemas import (
     PredictRequest,
@@ -144,4 +143,3 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
