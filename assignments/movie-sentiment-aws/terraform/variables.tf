@@ -22,9 +22,3 @@ variable "aws_region" {
   type        = string
   default     = "us-east-1"
 }
-
-variable "project_path" {
-  description = "The relative path from the repository root to the project directory."
-  type        = string
-  default     = "assignments/movie-sentiment-aws"
-}
