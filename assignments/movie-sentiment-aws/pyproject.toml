@@ -1,0 +1,26 @@
+[project]
+name = "movie-sentiment-aws"
+version = "0.1.0"
+description = "Serving a sentiment analysis model via FastAPI/Streamlit and deployed on AWS"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "scikit-learn",
+    "pandas",
+    "pyyaml",
+    "kagglehub",
+    "joblib",
+    "fastapi",
+    "uvicorn",
+    "python-dotenv",
+    "boto3",
+    "streamlit",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.12.0",
+]
+
+[tool.setuptools]
+packages = ["src"]

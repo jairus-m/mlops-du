@@ -48,6 +48,13 @@ Assignments are ran with [task](https://taskfile.dev/) which is a task runner/bu
     - Remove Docker Image: `task clean PROJ=movie-sentiment-fastapi`
     - Build + Run Docker Container: `task execute-proj-docker PROJ=movie-sentiment-fastapi`
 
+### Experimental: AWS Deployment
+- `movie-sentiment-aws`
+  - This project is currently a work in progress...
+  - Not currently ran with `task` as local configuration, multiple terminal sessions, and complexities exist with deploying to AWS
+  - Navigate to the deployment repo and follow the detailed step-by-step `README.md` instructions
+    - `cd assignments/movie-sentiment-aws`
+
 ---
 
 ## Exporting Dependencies to `requirements.txt`

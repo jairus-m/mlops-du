@@ -1,0 +1,22 @@
+# Configuration file for movie sentiment analysis project
+
+# Default settings, inherited by all environments
+default:
+  paths:
+    logs: "assets/logs/app.log"
+  kaggle:
+    dataset_path: "lakshmi25npathi/imdb-dataset-of-50k-movie-reviews"
+    dataset_name: "IMDB Dataset.csv"
+
+# Development environment settings (local file paths)
+development:
+  paths:
+    data: "assets/data/IMDB Dataset.csv"
+    model: "assets/models/sentiment_model.pkl"
+
+# Production environment settings
+# In production, 'data' and 'model' paths are S3 keys, not local file paths.
+production:
+  paths:
+    data: "data/IMDB Dataset.csv"
+    model: "models/sentiment_model.pkl"
