@@ -11,17 +11,19 @@ from starlette.middleware.base import BaseHTTPMiddleware
 import pandas as pd
 from src.utils import (
     logger,
-    log_middleware_request,
-    log_middleware_response,
     get_asset_path,
 )
-from .schemas import (
+from src.fastapi_backend.utils.middleware import (
+    log_middleware_request,
+    log_middleware_response,
+)
+from src.fastapi_backend.schemas import (
     PredictRequest,
     SentimentResponse,
     SentimentProbabilityResponse,
     ExampleResponse,
 )
-from .model_loader import load_model
+from src.fastapi_backend.model_loader import load_model
 
 app = FastAPI()
 

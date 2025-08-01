@@ -15,7 +15,6 @@ import boto3
 import yaml
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
-from fastapi import Request, Response
 
 # Load environment variables from .env file
 load_dotenv()
@@ -203,25 +202,9 @@ def get_asset_path(asset_key: str) -> Path:
         return dev_path
 
 
-async def log_middleware_request(request: Request, call_next) -> Response:
-    """Middleware to log incoming requests."""
-    logger.info(f"Request: {request.method} {request.url}")
-    response = await call_next(request)
-    return response
-
-
-async def log_middleware_response(request: Request, call_next) -> Response:
-    """Middleware to log outgoing responses."""
-    response = await call_next(request)
-    logger.info(f"Response status: {response.status_code}")
-    return response
-
-
 __all__ = [
     "config",
     "logger",
     "get_asset_path",
     "upload_to_s3",
-    "log_middleware_request",
-    "log_middleware_response",
 ]

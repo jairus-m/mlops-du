@@ -9,11 +9,11 @@ import os
 import requests
 import streamlit as st
 
-API_BACKEND_URL = os.getenv("API_BACKEND_URL", "http://localhost:8000")
+FASTAPI_BACKEND_URL = os.getenv("FASTAPI_BACKEND_URL", "http://localhost:8000")
 
 st.set_page_config(page_title="Movie Sentiment Analysis", layout="centered")
 
-st.title("🎬 Movie Sentiment Analysis")
+st.title("Movie Sentiment Analysis")
 st.markdown(
     "Enter a movie review below to predict its sentiment (positive or negative). "
     "This app sends a request to a FastAPI backend for the prediction."
@@ -22,8 +22,8 @@ st.markdown(
 st.subheader("Don't know what to write?")
 if st.button("Get a Random Review Example"):
     try:
-        response = requests.get(f"{API_BACKEND_URL}/example")
-        response.raise_for_status()  # Raise an exception for bad status codes
+        response = requests.get(f"{FASTAPI_BACKEND_URL}/example")
+        response.raise_for_status()
         example_review = response.json().get("review", "")
         st.session_state.review_text = example_review
     except requests.exceptions.RequestException as e:
@@ -34,7 +34,7 @@ review_text = st.text_area(
     "Enter your movie review here:",
     height=150,
     key="review_text",
-    placeholder="I loved this movie, the acting was superb!",
+    placeholder="I LOVE TRANSFORMERS. SHIA LA BEOUF IS THE BEST!",
 )
 
 if st.button("Analyze Sentiment"):
@@ -46,7 +46,7 @@ if st.button("Analyze Sentiment"):
                 payload = {"text": review_text}
 
                 response = requests.post(
-                    f"{API_BACKEND_URL}/predict_proba", json=payload
+                    f"{FASTAPI_BACKEND_URL}/predict_proba", json=payload
                 )
                 response.raise_for_status()
                 result = response.json()
@@ -71,7 +71,7 @@ if st.button("Analyze Sentiment"):
         except requests.exceptions.RequestException as e:
             st.error(f"Error communicating with the backend: {e}")
             st.info(
-                f"Please ensure the backend is running and accessible at `{API_BACKEND_URL}`."
+                f"Please ensure the backend is running and accessible at `{FASTAPI_BACKEND_URL}`."
             )
         except Exception as e:
             st.error(f"An unexpected error occurred: {e}")
@@ -79,7 +79,7 @@ if st.button("Analyze Sentiment"):
 st.markdown("---")
 st.markdown(
     "Built with Streamlit, FastAPI, and Scikit-learn. "
-    f"Backend running at: `{API_BACKEND_URL}`"
+    f"Backend running at: `{FASTAPI_BACKEND_URL}`"
 )
 st.markdown(
     "🔗 [View source on GitHub](https://github.com/jairus-m/mlops-du)",
