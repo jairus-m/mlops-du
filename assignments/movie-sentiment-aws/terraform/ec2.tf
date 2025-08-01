@@ -157,7 +157,7 @@ module "frontend_deployment" {
 
     build_and_run_commands = [
     "sudo docker build -f src/streamlit_frontend/Dockerfile -t movie-sentiment-frontend .",
-    "sudo docker run -d -p 8501:8501 --restart=always --name frontend -e API_BACKEND_URL=http://${aws_instance.backend.public_ip}:8000${local.common_env_vars} movie-sentiment-frontend:latest"
+    "sudo docker run -d -p 8501:8501 --restart=always --name frontend -e FASTAPI_BACKEND_URL=http://${aws_instance.backend.public_ip}:8000${local.common_env_vars} movie-sentiment-frontend:latest"
   ]
 }
 
