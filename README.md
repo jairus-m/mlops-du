@@ -47,9 +47,15 @@ Assignments are ran with [task](https://taskfile.dev/) which is a task runner/bu
     - Run Docker Container: `task run PROJ=movie-sentiment-fastapi`
     - Remove Docker Image: `task clean PROJ=movie-sentiment-fastapi`
     - Build + Run Docker Container: `task execute-proj-docker PROJ=movie-sentiment-fastapi`
+    
+### Assignment 5: Local E2E Deployment of Movie Sentiment ML Application (dev)
+- `movie-sentiment-aws/`
+  - Run all services: `task aws-dev:up`
+  - Get logs: `task aws-dev:logs`
+  - Stop all services: `task aws-dev:down`
 
-### Experimental: AWS Deployment
-- `movie-sentiment-aws`
+### [WIP] Assignment 6: AWS Deployment of Movie Sentiment ML Application (prod)
+- `movie-sentiment-aws/`
   - This project is currently a work in progress...
   - Not currently ran with `task` as local configuration, multiple terminal sessions, and complexities exist with deploying to AWS
   - Navigate to the deployment repo and follow the detailed step-by-step `README.md` instructions
