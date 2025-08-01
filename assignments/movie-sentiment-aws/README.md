@@ -47,147 +47,141 @@ This project is a MINIMAL deployment approach to serving an ML model. This is pu
 ```
 
 
-- **ML Training**: Traning service on EC2 to download data, train ML model, and push data/model file to S3.
-- **Backend**: FastAPI service running on a dedicated EC2 instance.
-- **Frontend**: Streamlit application running on a dedicated EC2 instance.
-- **Infrastructure**: All AWS resources (EC2, S3, Security Groups) are managed by Terraform.
-- **Automation**: EC2 instances are provisioned by Terraform which uses remote-exec provisioners to SSH into each instance after launch. These scripts install Docker and Git, transfer diles, build the required Docker images, and start the FastAPI or Streamlit containers with the correct environment variables. Configuration files are copied as needed and services are started automatically!
+- ML Training:
+  - Traning service on EC2 to download data, train ML model, and push data/model file to S3
+- Backend: 
+  - FastAPI inference service running on EC2
+- Frontend: 
+  - Streamlit application running on EC2
+- Storage:
+  - Data and model file are uploaded, stored, and retrieved from S3
+- Infrastructure and Automation: 
+  - All AWS resources (EC2, S3, Security Groups) are managed by Terraform.
+    - At a high level, EC2 instances are provisioned by Terraform which uses remote-exec provisioners to SSH into each instance after launch. These scripts install Docker/Git/other dependencies, transfer files, build the required Docker images, and orchestrates the three service's containers with the correct environment variables. Configuration files are copied as needed and services are started automatically!
 
-## Prerequisites
+## Local Dev Deployment 
 
-- AWS Account: An AWS account with programmatic access
+### Prerequisites
+- `uv>=0.7.10`
+  - [uv installation](https://docs.astral.sh/uv/getting-started/installation/)
+- `task>=3.43.3`
+  - [task installation](https://taskfile.dev/installation/)
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on your local machine.
+
+### Local Configuration
+For running this project on your local machine, no configuration is needed. The application will use your local files instead of S3 for storage and your CPU for computation.
+
+### Local Development with Docker Compose
+For a streamlined and consistent development experience that mirrors the production environment locally, you can use Docker Compose and the custom `task` commands.
+From the root of the project (`mlops-du/`), you can use the following commands:
+1.  Build and Start All Services
+
+    This single command builds the Docker images for ML training, the FastAPI backend, and the Stramlit frontend, and then starts them in the correct order. It will first run the training container to generate the model and then launch the backend and frontend services.
+
+    ```bash
+    task aws-dev:up
+    ```
+
+    You will see the logs from all services streamed to your terminal.
+
+2.  Access the Application
+
+    -   **Frontend URL**: [http://localhost:8501](http://localhost:8501)
+    -   **Backend API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+3.  View Logs (in a separate terminal)
+
+    If you want to follow the logs of the running services without blocking your main terminal, you can run:
+
+    ```bash
+    task aws-dev:logs
+    ```
+
+4.  Stop and Clean Up
+
+    To stop all the running services and remove the containers and network, run:
+
+    ```bash
+    task aws-dev:down
+    ```
+
+## AWS Prod Deployment 
+
+### Prerequisites
 - The following need to be installed:
   - [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+    - Need an AWS account with programmatic access along with the following credentials:
+      - aws_access_key_id
+      - aws_secret_access_key
+      - aws_session_token
   - [Terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli) installed on your local machine.
   - [uv](https://github.com/astral-sh/uv) installed on your local machine.
+  - Docker Desktop (Contains both the Engine and CLI Client)
+    - [docker installation](https://docs.docker.com/desktop/)
 
-## Configuration
-
-This project uses two different configuration methods depending on the environment (development vs production).
-
-### Local Development (`.env` file) via Local Files
-
-For running this project on your local machine, configuration is managed via a `.env` file in the project root. The application will use your local files instead of S3 for storage and your CPU for computation.
-    ```
-    # Within your root .env file (you must create this file)
-    # Set the application environment. Options: 'development' or 'production'
-    APP_ENV=development
-
-    # AWS Credentials for Boto3 (only used in production, but needed locally for Terraform)
-    AWS_ACCESS_KEY_ID=
-    AWS_SECRET_ACCESS_KEY=
-    AWS_SESSION_TOKEN=
-    AWS_DEFAULT_REGION=us-east-1
-    ```
-
-### AWS Deployment (`terraform.tfvars`) via Terraform
-
-When deploying to AWS with Terraform, configuration is passed directly to the EC2 instances at launch time. **This method does NOT use the `.env` file**
-
-Key variables are handled as follows:
-
--   APP_ENV: This is automatically set to `"production"` inside the startup scripts in `terraform/ec2.tf`.
--   AWS Credentials: These are passed securely from your `terraform/terraform.tfvars` file to the Docker containers.
-    ```
-    Within terraform/terraform.tfvars (you must create this file)
-    # AWS Credentials
-    aws_access_key_id     = ""
-    aws_secret_access_key = ""
-    aws_session_token     = ""
-    aws_region = "us-east-1"
-    ```
-
-## Local Development
-
-1. Navigate to `movie-sentiment-aws`
-
-```bash
-cd assignments/movie-sentiment-aws 
+### Configuration for AWS Deployment
+Within `mlops-du/assignments/movie-sentiment-aws`, create an `.env` file and add the following:
 ```
-
-2. Install dependencies
-
-```bash
-uv sync --all-packages
+TF_VAR_aws_access_key_id=
+TF_VAR_aws_secret_access_key=
+TF_VAR_aws_session_token=
 ```
+While these AWS credentials are really only used in production, they are needed locally for Terraform for authentication in order to run CLI commands like `plan` and `apply` as well as for passing directly to the EC2 instances at launch time.
 
-3. In the terminal, run the training script:
 
-```bash
-uv run python -m src.sklearn_training.train_model
-```
-
-4. In a separate terminal, run the FastAPI Backend:
-
-```bash  
-uv run uvicorn src.fastapi_backend.main:app --host 0.0.0.0 --port 8000
-```
-
-5. In another, separate teminal, run the Streamlit Frontend:
-
-```bash
-uv run streamlit run src/streamlit_frontend/app.py
-```
-
-6. Open the Frontend URL in your browser and run sentiment analysis!
-    - Frontend URL: http://<FRONTEND_PUBLIC_IP>:8501
-
-## Automated AWS Deployment via Terraform
+## AWS Deployment with Terraform
 
 This workflow provisions the entire infrastructure and deploys the applications with Terraform.
 
-### Step 1: Configure Your Terraform Environment
+### Step 1: Export Env Vars and Create S3 Bucket
 
 1. Navigate to the `terraform/` directory
-    ```bash
-    cd terraform/
-    ```
+```bash
+cd terraform/
+```
 
 2. Export AWS credentials from `.env` file for Terraform
-    Terraform will use these variables to authenticate with your AWS account.
-    ```bash
-    set -a
-    source .
-    set +a
-    ```
+
+Terraform will use these variables to authenticate with your AWS account.
+```bash
+set -a
+source .
+set +a
+```
 
 3. Manually Create S3 Bucket via AWS CLI
-    
-    Because the `awsstudent` role has very limited permissions, there are issues with Terraform when it tries to automatically check the state of some resources (S3 mainly) via
-    the object lock:
-    ```bash
-    # Error message I keep getting
-    AccessDenied: User: arn:aws:sts::614899697409:assumed-role/voclabs/user4228548=jairus is not authorized to perform: s3:GetBucketObjectLockConfiguration on resource: "arn:aws:s3:::movie-sentiment-s3-dig97dh6" with an explicit deny in an identity-based policy
-    ```
 
-    Because of this, you have to manually create an S3 bucket either through the AWS Console or CLI. 
-    ```bash
-    # example
-    aws s3api create-bucket --bucket movie-sentiment-s3 --region us-east-1
-    ```
+Because the `awsstudent` role has very limited permissions, there are issues with Terraform when it tries to automatically check the state of some resources (S3 mainly) via
+the object lock:
+```bash
+# Error message I keep getting
+AccessDenied: User: arn:aws:sts::614899697409:assumed-role/voclabs/user4228548=jairus is not authorized to perform: s3:GetBucketObjectLockConfiguration on resource: "arn:aws:s3:::movie-sentiment-s3-dig97dh6" with an explicit deny in an identity-based policy
+```
 
-4. Confirm Terraform Variables File
-
-    Make sure you have have the necessary credentials in the `terraform.tfvars` file (in addition to exporting the env vars in the terminal session for Terraform). This file will securely store the variables needed for deployment. 
+Because of this, you have to manually create an S3 bucket either through the AWS Console or CLI. 
+```bash
+aws s3api create-bucket --bucket movie-sentiment-s3 --region us-east-1
+```
 
 ### Step 2: Deploy the Application
 
 1. Initialize Terraform
-   From the `terraform/` directory, run `terraform init` to prepare the workspace.
 
-    ```bash
-    terraform init
-    ```
+From the `terraform/` directory, run `terraform init` to prepare the workspace.
+
+```bash
+terraform init
+```
 
 2. Apply the Terraform Plan
 
-    Run `terraform apply` to create the AWS resources and deploy the application. Terraform will show you a plan and ask for confirmation before proceeding.
+Run `terraform apply` to create the AWS resources and deploy the application. Terraform will show you a plan and ask for confirmation before proceeding.
 
-    ```bash
-    terraform apply
-    ```
+```bash
+terraform apply
+```
 
-    This process will take a few minutes as the EC2 instances need to start, transfer necessary application files, install dependencies, build the Docker images, and run them.
+This process will take a few minutes as the EC2 instances need to start, transfer necessary application files, install dependencies, build the Docker images, and run them.
 
 ### Step 3: Access the App
 
