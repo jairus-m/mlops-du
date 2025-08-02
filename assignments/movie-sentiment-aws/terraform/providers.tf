@@ -12,5 +12,5 @@ terraform {
 # This block configures the AWS provider itself.
 # You should change the region to match your AWS lab environment if it's not us-east-1.
 provider "aws" {
-  region = "us-east-1"
+  region = var.aws_region
 }

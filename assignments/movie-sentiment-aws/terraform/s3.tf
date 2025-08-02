@@ -9,7 +9,7 @@ resource "random_string" "bucket_suffix" {
 # Reference an existing S3 bucket instead of creating one
 # The bucket must be created manually first
 data "aws_s3_bucket" "movie_sentiment_assets" {
-  bucket = "movie-sentiment-s3"
+  bucket = var.s3_bucket
 }
 
 # This output block will display the S3 bucket name
