@@ -5,19 +5,28 @@ description = "Serving a sentiment analysis model via FastAPI/Streamlit and depl
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "scikit-learn",
-    "pandas",
-    "pyyaml",
-    "kagglehub",
-    "joblib",
-    "fastapi",
-    "uvicorn",
     "python-dotenv",
+    "pyyaml",
     "boto3",
-    "streamlit",
 ]
 
 [project.optional-dependencies]
+training = [
+    "scikit-learn",
+    "pandas",
+    "kagglehub",
+    "joblib",
+]
+backend = [
+    "fastapi",
+    "uvicorn",
+    "scikit-learn",
+    "pandas",
+    "joblib",
+]
+frontend = [
+    "streamlit",
+]
 dev = [
     "ruff>=0.12.0",
 ]

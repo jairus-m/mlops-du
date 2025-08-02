@@ -20,7 +20,7 @@ from src.utils import (
     PROJECT_ROOT,
     upload_to_s3,
 )
-from .data_loader import download_kaggle_dataset
+from src.sklearn_training.data_loader import download_kaggle_dataset
 
 pd.set_option("future.no_silent_downcasting", True)
 
