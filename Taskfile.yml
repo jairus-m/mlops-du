@@ -1,6 +1,11 @@
 version: '3'
 
 tasks:
+  install-tools:
+    desc: Install all the tools needed for the project (need task for)
+    cmds:
+      - ./install-tools.sh
+
   # Internal validator for env vars / projects args
   _validate:
     internal: true
@@ -132,3 +137,45 @@ tasks:
     dir: assignments/movie-sentiment-aws
     cmds:
       - docker-compose logs -f
+
+  aws-prod:init:
+    desc: Initialize Terraform
+    dir: assignments/movie-sentiment-aws/terraform
+    cmds:
+      - terraform init
+
+  aws-prod:s3:
+    desc: Create the S3 bucket for storing artifacts
+    dir: assignments/movie-sentiment-aws/terraform
+    vars:
+      S3_BUCKET: '{{.S3_BUCKET | default "movie-sentiment-s3"}}'
+      AWS_REGION: '{{.AWS_REGION | default "us-east-1"}}'
+    cmds:
+      - |
+        set -a
+        source ../.env
+        set +a
+        aws s3api create-bucket --bucket {{.S3_BUCKET}} --region {{.AWS_REGION}}
+
+  aws-prod:apply:
+    desc: Run terraform apply to deploy the application
+    dir: assignments/movie-sentiment-aws/terraform
+    vars:
+      S3_BUCKET: '{{.S3_BUCKET | default "movie-sentiment-s3"}}'
+      AWS_REGION: '{{.AWS_REGION | default "us-east-1"}}'
+    cmds:
+      - |
+        set -a
+        source ../.env
+        set +a
+        terraform apply --auto-approve -var="s3_bucket={{.S3_BUCKET}}" -var="aws_region={{.AWS_REGION}}"
+
+  aws-prod:destroy:
+    desc: Run terraform destroy to tear down the infrastructure
+    dir: assignments/movie-sentiment-aws/terraform
+    cmds:
+      - |
+        set -a
+        source ../.env
+        set +a
+        terraform destroy --auto-approve

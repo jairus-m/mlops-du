@@ -1,13 +1,12 @@
 # COMP 4450 MLOps
 This repo contains all the subrepos (aka "projects") that represent each assignment. 
 
-## Prerequisites
-- `uv>=0.7.10`
-  - [uv installation](https://docs.astral.sh/uv/getting-started/installation/)
-- `task>=3.43.3`
-  - [task installation](https://taskfile.dev/installation/)
-- Docker Desktop (Contains both the Engine and CLI Client)
-  - [docker installation](https://docs.docker.com/desktop/)
+## Project Dependencies
+- [uv](https://docs.astral.sh/uv/getting-started/installation/)
+- [task](https://taskfile.dev/installation/)
+- [Docker Desktop](https://docs.docker.com/desktop/)
+- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+- [Terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli)
 
 __Note__: For easy setup on macOS/Linux, use the included installation script after cloning the repo:
 ```bash
@@ -48,18 +47,25 @@ Assignments are ran with [task](https://taskfile.dev/) which is a task runner/bu
     - Remove Docker Image: `task clean PROJ=movie-sentiment-fastapi`
     - Build + Run Docker Container: `task execute-proj-docker PROJ=movie-sentiment-fastapi`
     
-### Assignment 5: Local E2E Deployment of Movie Sentiment ML Application (dev)
+### [WIP] Assignment 5: Local Deployment (Docker Compose) of Movie Sentiment ML Application
 - `movie-sentiment-aws/`
   - Run all services: `task aws-dev:up`
   - Get logs: `task aws-dev:logs`
   - Stop all services: `task aws-dev:down`
 
-### [WIP] Assignment 6: AWS Deployment of Movie Sentiment ML Application (prod)
+### [WIP] Assignment 6: Production Deployment (Terraform + AWS) of Movie Sentiment ML Application
 - `movie-sentiment-aws/`
-  - This project is currently a work in progress...
-  - Not currently ran with `task` as local configuration, multiple terminal sessions, and complexities exist with deploying to AWS
-  - Navigate to the deployment repo and follow the detailed step-by-step `README.md` instructions
-    - `cd assignments/movie-sentiment-aws`
+  - Initialize terraform: `task aws-prod:init`
+  - Create S3 Bucket: `task aws-prod:s3 S3_BUCKET=movie-sentiment-s3`
+  - Launch AWS deployment: `task aws-prod:apply S3_BUCKET=movie-sentiment-s3`
+  - Tear down AWS eployment: `task aws-prod:destory`
+  - Notes:
+    - Need to add AWS CLI env vars in `assignments/movie-sentiment-aws/.env` first!
+    - Refer to `assignments/movie-sentiment-aws/README.md` for `.env` config instructions
+    - `S3_BUCKET` and `AWS_REGION` variables are optional 
+      - `task aws-prod:s3 S3_BUCKET=your-s3-bucket AWS_REGION=us-west-2`
+      - `task aws-prod:apply S3_BUCKET=your-s3-bucket AWS_REGION=us-west-2`
+    - The above task commands must be ran in that particular order (i.e. init > s3 > apply > destory)
 
 ---
 

@@ -8,7 +8,8 @@ This project is structured as a multi-package monorepo using `uv` workspaces. Ea
 
 This project is a MINIMAL deployment approach to serving an ML model. This is purely for learning purposes and is missing a lot of MLOps best-practices in terms of observability, monitoring, re-training, CI/CD, etc.
 
-![Architecture Diagram](assets/images/architecture.png)
+<img src="assets/images/architecture.png" width="1000"/>
+
 
 ### Filetree
 ```bash
@@ -122,9 +123,15 @@ From the root of the project (`mlops-du/`), you can use the following commands:
 ### Configuration for AWS Deployment
 Within `mlops-du/assignments/movie-sentiment-aws`, create an `.env` file and add the following:
 ```
-TF_VAR_aws_access_key_id=
-TF_VAR_aws_secret_access_key=
-TF_VAR_aws_session_token=
+# For AWS CLI / Boto3
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_SESSION_TOKEN=
+
+# For Terraform (re-using the same values as above)
+TF_VAR_aws_access_key_id=$AWS_ACCESS_KEY_ID
+TF_VAR_aws_secret_access_key=$AWS_SECRET_ACCESS_KEY
+TF_VAR_aws_session_token=$AWS_SESSION_TOKEN
 ```
 While these AWS credentials are really only used in production, they are needed locally for Terraform for authentication in order to run CLI commands like `plan` and `apply` as well as for passing directly to the EC2 instances at launch time.
 
@@ -133,55 +140,37 @@ While these AWS credentials are really only used in production, they are needed 
 
 This workflow provisions the entire infrastructure and deploys the applications with Terraform.
 
-### Step 1: Export Env Vars and Create S3 Bucket
+### Step 1: Initialize Terraform and Create S3 Bucket
 
-1. Navigate to the `terraform/` directory
-```bash
-cd terraform/
-```
+1.  Initialize Terraform
 
-2. Export AWS credentials from `.env` file for Terraform
+    From the root of the project (`mlops-du/`), run the following command to initialize Terraform. This will download the necessary providers and set up the backend.
 
-Terraform will use these variables to authenticate with your AWS account.
-```bash
-set -a
-source .
-set +a
-```
+    ```bash
+    task aws-prod:init
+    ```
 
-3. Manually Create S3 Bucket via AWS CLI
+2.  Create the S3 Bucket
 
-Because the `awsstudent` role has very limited permissions, there are issues with Terraform when it tries to automatically check the state of some resources (S3 mainly) via
-the object lock:
-```bash
-# Error message I keep getting
-AccessDenied: User: arn:aws:sts::614899697409:assumed-role/voclabs/user4228548=jairus is not authorized to perform: s3:GetBucketObjectLockConfiguration on resource: "arn:aws:s3:::movie-sentiment-s3-dig97dh6" with an explicit deny in an identity-based policy
-```
+    Next, create the S3 bucket that will be used to store the model and data artifacts.
 
-Because of this, you have to manually create an S3 bucket either through the AWS Console or CLI. 
-```bash
-aws s3api create-bucket --bucket movie-sentiment-s3 --region us-east-1
-```
+    ```bash
+    task aws-prod:s3 S3_BUCKET=<your-unique-bucket-name> # Defaults to movie-sentiment-s3
+    ```
+
+    > **Note**: Because the `awsstudent` role has very limited permissions, there are issues with Terraform when it tries to automatically check the state of some resources (S3 mainly) via the object lock. Because of this, you have to manually create an S3 bucket.
 
 ### Step 2: Deploy the Application
 
-1. Initialize Terraform
+1.  Apply the Terraform Plan
 
-From the `terraform/` directory, run `terraform init` to prepare the workspace.
+    Run the following command to create the AWS resources and deploy the application. Terraform will show you a plan and ask for confirmation before proceeding.
 
-```bash
-terraform init
-```
+    ```bash
+    task aws-prod:apply S3_BUCKET=<your-unique-bucket-name> # Defaults to movie-sentiment-s3
+    ```
 
-2. Apply the Terraform Plan
-
-Run `terraform apply` to create the AWS resources and deploy the application. Terraform will show you a plan and ask for confirmation before proceeding.
-
-```bash
-terraform apply
-```
-
-This process will take a few minutes as the EC2 instances need to start, transfer necessary application files, install dependencies, build the Docker images, and run them.
+    This process will take a few minutes as the EC2 instances need to start, transfer necessary application files, install dependencies, build the Docker images, and run them.
 
 ### Step 3: Access the App
 
@@ -189,10 +178,28 @@ Once the `terraform apply` command is complete, it will output the public IP add
 
 - **Frontend URL**: `http://<FRONTEND_PUBLIC_IP>:8501`
 
-## Cleanup
+### Step 4: Cleanup
 
 To tear down all the AWS resources created by this project, run the `destroy` command from the `terraform` directory.
 
-```bash
-terraform destroy
-```
+  ```bash
+  task aws-prod:destroy
+  ```
+
+
+# Screenshots
+
+#### Terraform CLI Output 
+<img src="assets/images/terraform.png" width="800"/>
+
+#### S3 Bucket
+<img src="assets/images/s3.png" width="800"/>
+
+#### EC2 Instances
+<img src="assets/images/ec2.png" width="800"/>
+
+#### FastAPI Backend Docs Endpoint
+<img src="assets/images/fastapi.png" width="800"/>
+
+#### Streamlit Frontend
+<img src="assets/images/streamlit.png" width="800"/>
