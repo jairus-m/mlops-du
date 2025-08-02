@@ -65,7 +65,7 @@ Assignments are ran with [task](https://taskfile.dev/) which is a task runner/bu
     - `S3_BUCKET` and `AWS_REGION` variables are optional 
       - `task aws-prod:s3 S3_BUCKET=your-s3-bucket AWS_REGION=us-west-2`
       - `task aws-prod:apply S3_BUCKET=your-s3-bucket AWS_REGION=us-west-2`
-    - The above task commands must be ran in that particular order (i.e. init > s3 > apply > destory)
+    - The above task commands must be ran in that particular order (i.e. init > s3 > apply > destroy)
 
 ---
 
