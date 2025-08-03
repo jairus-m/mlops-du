@@ -12,18 +12,20 @@ import pandas as pd
 from src.utils import (
     logger,
     get_asset_path,
+    prediction_logger,
 )
 from src.fastapi_backend.utils.middleware import (
     log_middleware_request,
     log_middleware_response,
 )
-from src.fastapi_backend.schemas import (
+from src.fastapi_backend.utils.schemas import (
     PredictRequest,
+    SentimentFeedback,
     SentimentResponse,
     SentimentProbabilityResponse,
     ExampleResponse,
 )
-from src.fastapi_backend.model_loader import load_model
+from src.fastapi_backend.utils.model_loader import load_model
 
 app = FastAPI()
 
@@ -79,7 +81,17 @@ async def predict(request: PredictRequest) -> SentimentResponse:
     """
     try:
         prediction = model.predict([request.text])[0]
-        return {"sentiment": "positive" if prediction == 1 else "negative"}
+        sentiment = "positive" if prediction == 1 else "negative"
+        
+        
+        prediction = {
+            "endpoint": "/predict",
+            "request_text": request.text,
+            "predicted_sentiment": sentiment,
+        }
+        prediction_logger.info(prediction)
+        
+        return {"sentiment": sentiment}
     except Exception as e:
         logger.error(f"Error making prediction: {str(e)}")
         raise HTTPException(status_code=500, detail="Error making prediction")
@@ -103,6 +115,15 @@ async def predict_proba(request: PredictRequest) -> SentimentProbabilityResponse
         else:
             prediction_str = "negative"
             probability = probabilities[0]
+            
+        prediction = {
+            "endpoint": "/predict_proba",
+            "request_text": request.text,
+            "predicted_sentiment": prediction_str,
+            "probability": round(probability, 2),
+        }
+        prediction_logger.info(prediction)
+    
         return {"sentiment": prediction_str, "probability": round(probability, 2)}
     except ValueError as e:
         logger.error(f"Pydantic validation error: {str(e)}")
@@ -130,7 +151,29 @@ async def example() -> ExampleResponse:
     except Exception as e:
         logger.error(f"Error getting random review: {str(e)}")
         raise HTTPException(status_code=500, detail="Error retrieving example review")
+    
 
+@app.post("/true_sentiment")
+async def true_sentiment(request: SentimentFeedback) -> dict:
+    """
+    True sentiment endpoint
+    Args:
+        request (TrueSentimentRequest):  {"is_sentiment_correct": "bool"}
+    """
+    try:
+        feedback = {
+            "endpoint": "/true_sentiment",
+            "request_text": request.request_text,
+            "predicted_sentiment": request.predicted_sentiment,
+            "probability": request.probability,
+            "true_sentiment": request.true_sentiment,
+        }
+        prediction_logger.info(feedback)
+        logger.info({"true_sentiment": feedback["true_sentiment"]})
+        return {"message": "Feedback received"}
+    except Exception as e:
+        logger.error(f"Error processing sentiment feedback: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error processing sentiment feedback")
 
 @app.get("/favicon.ico")
 async def favicon():

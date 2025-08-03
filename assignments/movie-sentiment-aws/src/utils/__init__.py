@@ -15,6 +15,8 @@ import boto3
 import yaml
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
+from .prediction_logger import setup_prediction_logger
+
 
 # Load environment variables from .env file
 load_dotenv()
@@ -63,12 +65,12 @@ def load_config() -> Dict[str, Any]:
         sys.exit(1)
 
 
-def setup_logger(log_path_str: str) -> logging.Logger:
+def setup_logger(config: Dict[str, Any]) -> logging.Logger:
     """
-    Sets up a rotating file logger and a console logger.
+    Sets up a rotating file logger and a console logger based on config.
 
     Args:
-        log_path_str (str): The path for the log file from the config.
+        config (Dict[str, Any]): The application configuration.
 
     Returns:
         logging.Logger: The configured logger instance.
@@ -79,14 +81,18 @@ def setup_logger(log_path_str: str) -> logging.Logger:
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
-    # Ensure log directory exists
-    log_path = PROJECT_ROOT / log_path_str
-    log_path.parent.mkdir(parents=True, exist_ok=True)
+    log_config = config.get("main_logging", {})
+    handler_type = log_config.get("handler")
 
-    # File handler
-    fh = RotatingFileHandler(log_path, maxBytes=5 * 1024 * 1024, backupCount=5)
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
+    if handler_type == "file":
+        log_path_str = log_config.get("path", "assets/logs/app.log")
+        log_path = PROJECT_ROOT / log_path_str
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # File handler
+        fh = RotatingFileHandler(log_path, maxBytes=5 * 1024 * 1024, backupCount=5)
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
 
     # Console handler
     ch = logging.StreamHandler(sys.stdout)
@@ -96,11 +102,10 @@ def setup_logger(log_path_str: str) -> logging.Logger:
     return logger
 
 
-# --- Initialize and export config and logger ---
 config = load_config()
-logger = setup_logger(config["paths"]["logs"])
+logger = setup_logger(config)
+prediction_logger = setup_prediction_logger(config)
 logger.info(f"Configuration loaded for '{config['env']}' environment.")
-# ---
 
 
 def upload_to_s3(local_path: Path, s3_key: str) -> bool:
@@ -207,4 +212,5 @@ __all__ = [
     "logger",
     "get_asset_path",
     "upload_to_s3",
+    "prediction_logger",
 ]
