@@ -57,3 +57,23 @@ class ExampleResponse(BaseModel):
     """
 
     review: str
+
+
+class SentimentFeedback(BaseModel):
+    """Request/response model for true sentiment prediction sent to the API
+    as a JSON object with a single key "is_sentiment_correct".
+
+    Example request:
+        {
+            "request_text": "Movie was buns..",
+            "predicted_sentiment": "positive",
+            "probability": 0.12,
+            "true_sentiment": "negative"
+            "is_sentiment_correct": false
+        }
+    """
+    request_text: str
+    predicted_sentiment: str
+    probability: float
+    true_sentiment: str
+    is_sentiment_correct: bool

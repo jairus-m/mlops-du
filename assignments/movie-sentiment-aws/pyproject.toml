@@ -27,6 +27,14 @@ backend = [
 frontend = [
     "streamlit",
 ]
+monitoring = [
+    "streamlit",
+    "pandas",
+    "altair",
+    "scikit-learn",
+    "pyyaml",
+    "boto3",
+]
 dev = [
     "ruff>=0.12.0",
 ]
