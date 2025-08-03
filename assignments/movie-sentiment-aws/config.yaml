@@ -1,22 +1,25 @@
 # Configuration file for movie sentiment analysis project
 
-# Default settings, inherited by all environments
 default:
-  paths:
-    logs: "assets/logs/app.log"
+  main_logging:
+    handler: "file"
+    path: "assets/logs/app.log"
   kaggle:
     dataset_path: "lakshmi25npathi/imdb-dataset-of-50k-movie-reviews"
     dataset_name: "IMDB Dataset.csv"
 
-# Development environment settings (local file paths)
 development:
-  paths:
+  paths: # Local file paths
     data: "assets/data/IMDB Dataset.csv"
     model: "assets/models/sentiment_model.pkl"
+  prediction_logging:
+    handler: "file"
+    path: "assets/logs/prediction_logs.json"    
 
-# Production environment settings
-# In production, 'data' and 'model' paths are S3 keys, not local file paths.
 production:
-  paths:
+  paths: # S3 paths
     data: "data/IMDB Dataset.csv"
     model: "models/sentiment_model.pkl"
+  prediction_logging:
+    handler: "dynamodb"
+    table_name: "sentiment_predictions"
