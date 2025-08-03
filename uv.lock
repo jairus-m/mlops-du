@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.12"
 
 [manifest]
@@ -355,37 +355,63 @@ version = "0.1.0"
 source = { virtual = "assignments/movie-sentiment-aws" }
 dependencies = [
     { name = "boto3" },
-    { name = "fastapi" },
-    { name = "joblib" },
-    { name = "kagglehub" },
-    { name = "pandas" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
-    { name = "scikit-learn" },
-    { name = "streamlit" },
-    { name = "uvicorn" },
 ]
 
 [package.optional-dependencies]
+backend = [
+    { name = "fastapi" },
+    { name = "joblib" },
+    { name = "pandas" },
+    { name = "scikit-learn" },
+    { name = "uvicorn" },
+]
 dev = [
     { name = "ruff" },
+]
+frontend = [
+    { name = "streamlit" },
+]
+monitoring = [
+    { name = "altair" },
+    { name = "boto3" },
+    { name = "pandas" },
+    { name = "pyyaml" },
+    { name = "scikit-learn" },
+    { name = "streamlit" },
+]
+training = [
+    { name = "joblib" },
+    { name = "kagglehub" },
+    { name = "pandas" },
+    { name = "scikit-learn" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "altair", marker = "extra == 'monitoring'" },
     { name = "boto3" },
-    { name = "fastapi" },
-    { name = "joblib" },
-    { name = "kagglehub" },
-    { name = "pandas" },
+    { name = "boto3", marker = "extra == 'monitoring'" },
+    { name = "fastapi", marker = "extra == 'backend'" },
+    { name = "joblib", marker = "extra == 'backend'" },
+    { name = "joblib", marker = "extra == 'training'" },
+    { name = "kagglehub", marker = "extra == 'training'" },
+    { name = "pandas", marker = "extra == 'backend'" },
+    { name = "pandas", marker = "extra == 'monitoring'" },
+    { name = "pandas", marker = "extra == 'training'" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
+    { name = "pyyaml", marker = "extra == 'monitoring'" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.12.0" },
-    { name = "scikit-learn" },
-    { name = "streamlit" },
-    { name = "uvicorn" },
+    { name = "scikit-learn", marker = "extra == 'backend'" },
+    { name = "scikit-learn", marker = "extra == 'monitoring'" },
+    { name = "scikit-learn", marker = "extra == 'training'" },
+    { name = "streamlit", marker = "extra == 'frontend'" },
+    { name = "streamlit", marker = "extra == 'monitoring'" },
+    { name = "uvicorn", marker = "extra == 'backend'" },
 ]
-provides-extras = ["dev"]
+provides-extras = ["training", "backend", "frontend", "monitoring", "dev"]
 
 [[package]]
 name = "movie-sentiment-fastapi"
