@@ -3,24 +3,35 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 from src.streamlit_monitoring.data_loader import load_feedback_logs, load_imdb_dataset, load_all_logs
+from src.utils import logger
 
 st.set_page_config(page_title="Sentiment Model Monitoring", layout="wide")
+logger.info("Streamlit monitoring app started.")
 
 st.title("Sentiment Model Monitoring Dashboard")
 
 if st.button("🔄 Refresh Data"):
+    logger.info("'Refresh Data' button clicked.")
     st.rerun()
 
 def load_data():
-    all_logs = load_all_logs()
-    feedback_logs = load_feedback_logs()
-    imdb_df = load_imdb_dataset()
-    return all_logs, feedback_logs, imdb_df
+    try:
+        logger.info("Loading all logs, feedback logs, and IMDB dataset.")
+        all_logs = load_all_logs()
+        feedback_logs = load_feedback_logs()
+        imdb_df = load_imdb_dataset()
+        logger.info("Data loading complete.")
+        return all_logs, feedback_logs, imdb_df
+    except Exception as e:
+        logger.exception(f"Failed to load data for monitoring dashboard: {e}")
+        st.error(f"Failed to load data: {e}")
+        return [], [], pd.DataFrame()
 
 all_logs, feedback_logs, imdb_df = load_data()
 
 if not feedback_logs:
     st.warning("No feedback data found. Please add some feedback to see the monitoring dashboard.")
+    logger.warning("No feedback data found for monitoring dashboard.")
 else:
     st.header("Data Drift Analysis")
     
@@ -120,8 +131,11 @@ else:
     
     if accuracy < 0.8:
         st.error("Model accuracy has dropped below 80%!")
+        logger.warning(f"Model accuracy has dropped to {accuracy:.2f}, which is below the 80% threshold.")
+        logger.warning(f"Model precision is {precision:.2f}.")
     else:
         st.success("Model accuracy is above 80%.")
-    
+        logger.info(f"Model accuracy is {accuracy:.2f}, which is above the 80% threshold.")
+        logger.info(f"Model precision is {precision:.2f}.")
     st.header("Raw Feedback Data")
     st.dataframe(pd.DataFrame(feedback_logs))
