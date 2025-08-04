@@ -19,14 +19,20 @@ resource "local_sensitive_file" "private_key" {
 }
 
 locals {
-        docker_setup_commands = [
+  docker_setup_commands = [
     "sudo yum install -y docker",
     "sudo systemctl start docker",
     "sudo systemctl enable docker",
     "while [ ! -S /var/run/docker.sock ]; do echo 'Waiting for docker socket...'; sleep 2; done"
   ]
 
-  common_env_vars = " -e APP_ENV=production -e AWS_ACCESS_KEY_ID=${var.aws_access_key_id} -e AWS_SECRET_ACCESS_KEY=${var.aws_secret_access_key} -e AWS_SESSION_TOKEN=${var.aws_session_token} -e S3_BUCKET_NAME=${data.aws_s3_bucket.movie_sentiment_assets.bucket}"
+  common_env_vars = [
+    "-e APP_ENV=production",
+    "-e AWS_ACCESS_KEY_ID=${var.aws_access_key_id}",
+    "-e AWS_SECRET_ACCESS_KEY=${var.aws_secret_access_key}",
+    "-e AWS_SESSION_TOKEN=${var.aws_session_token}",
+    "-e S3_BUCKET_NAME=${data.aws_s3_bucket.movie_sentiment_assets.bucket}"
+  ]
 
   common_files = [
     {
@@ -46,6 +52,13 @@ locals {
       destination = "/home/ec2-user/app/src/utils"
     }
   ]
+
+  awslogs_config = [
+    "--log-driver=awslogs",
+    "--log-opt awslogs-region=${var.aws_region}",
+    "--log-opt awslogs-group=${aws_cloudwatch_log_group.movie_sentiment.name}",
+    "--log-opt awslogs-create-group=true",
+  ]
 }
 
 # SKLearn Model Training EC2 instance
@@ -55,6 +68,7 @@ resource "aws_instance" "ml_training" {
 
   vpc_security_group_ids = [aws_security_group.backend.id]
   key_name               = aws_key_pair.deployer.key_name
+  iam_instance_profile   = "LabInstanceProfile"
 
   tags = {
     Name      = "SKLearn Model Training Instance"
@@ -73,6 +87,7 @@ resource "aws_instance" "backend" {
 
   vpc_security_group_ids = [aws_security_group.backend.id]
   key_name               = aws_key_pair.deployer.key_name
+  iam_instance_profile   = "LabInstanceProfile"
 
   tags = {
     Name      = "FastAPI Backend Instance"
@@ -91,6 +106,7 @@ resource "aws_instance" "frontend" {
 
   vpc_security_group_ids = [aws_security_group.frontend.id]
   key_name               = aws_key_pair.deployer.key_name
+  iam_instance_profile   = "LabInstanceProfile"
 
   tags = {
     Name      = "Streamlit Frontend Instance"
@@ -100,7 +116,7 @@ resource "aws_instance" "frontend" {
 }
 
 module "ml_training_deployment" {
-  source   = "./modules/docker_deployment"
+  source      = "./modules/docker_deployment"
   instance_ip = aws_instance.ml_training.public_ip
   private_key = tls_private_key.rsa.private_key_pem
 
@@ -113,14 +129,14 @@ module "ml_training_deployment" {
 
   docker_setup_commands = local.docker_setup_commands
 
-    build_and_run_commands = [
+  build_and_run_commands = [
     "sudo docker build -f src/sklearn_training/Dockerfile -t movie-sentiment-training .",
-    "sudo docker run -d --name training${local.common_env_vars} movie-sentiment-training:latest"
+    "sudo docker run -d --name training ${join(" ", local.awslogs_config)} --log-opt awslogs-stream=${aws_instance.ml_training.id}-training ${join(" ", local.common_env_vars)} movie-sentiment-training:latest"
   ]
 }
 
 module "backend_deployment" {
-  source   = "./modules/docker_deployment"
+  source    = "./modules/docker_deployment"
   depends_on = [module.ml_training_deployment]
   instance_ip = aws_instance.backend.public_ip
   private_key = tls_private_key.rsa.private_key_pem
@@ -134,14 +150,14 @@ module "backend_deployment" {
 
   docker_setup_commands = local.docker_setup_commands
 
-    build_and_run_commands = [
+  build_and_run_commands = [
     "sudo docker build -f src/fastapi_backend/Dockerfile -t movie-sentiment-backend .",
-    "sudo docker run -d -p 8000:8000 --restart=always --name backend${local.common_env_vars} movie-sentiment-backend:latest"
+    "sudo docker run -d -p 8000:8000 --restart=always --name backend ${join(" ", local.awslogs_config)} --log-opt awslogs-stream=${aws_instance.backend.id}-backend ${join(" ", local.common_env_vars)} movie-sentiment-backend:latest"
   ]
 }
 
 module "frontend_deployment" {
-  source   = "./modules/docker_deployment"
+  source    = "./modules/docker_deployment"
   depends_on = [module.backend_deployment]
   instance_ip = aws_instance.frontend.public_ip
   private_key = tls_private_key.rsa.private_key_pem
@@ -155,9 +171,9 @@ module "frontend_deployment" {
 
   docker_setup_commands = local.docker_setup_commands
 
-    build_and_run_commands = [
+  build_and_run_commands = [
     "sudo docker build -f src/streamlit_frontend/Dockerfile -t movie-sentiment-frontend .",
-    "sudo docker run -d -p 8501:8501 --restart=always --name frontend -e FASTAPI_BACKEND_URL=http://${aws_instance.backend.public_ip}:8000${local.common_env_vars} movie-sentiment-frontend:latest"
+    "sudo docker run -d -p 8501:8501 --restart=always --name frontend ${join(" ", local.awslogs_config)} --log-opt awslogs-stream=${aws_instance.frontend.id}-frontend ${join(" ", local.common_env_vars)} -e FASTAPI_BACKEND_URL=http://${aws_instance.backend.public_ip}:8000 movie-sentiment-frontend:latest"
   ]
 }
 
