@@ -12,9 +12,11 @@ RUN pip install uv
 
 COPY ./src/streamlit_frontend ./src/streamlit_frontend
 COPY ./src/utils ./src/utils
+COPY ./config.yaml ./config.yaml
+COPY ./assets ./assets
 COPY pyproject.toml ./
 
-RUN uv pip install --system --no-cache ".[frontend]"
+RUN uv pip install --system --no-cache -e ".[frontend]"
 
 EXPOSE 8501
 
