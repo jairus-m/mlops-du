@@ -178,4 +178,13 @@ tasks:
         set -a
         source ../.env
         set +a
+        aws logs delete-log-group --log-group-name /aws/ec2/movie-sentiment-app --region us-east-1
         terraform destroy --auto-approve
+
+  aws-prod:reset:
+    desc: Reset the infrastructure/state/local state and start from scratch
+    dir: assignments/movie-sentiment-aws/terraform
+    cmds:
+      - |
+        rm -rf .terraform/ *.tfstate* .terraform.*
+        terraform init
