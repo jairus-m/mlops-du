@@ -8,7 +8,7 @@ FastAPI sentiment analysis backend.
 import os
 import requests
 import streamlit as st
-from src.utils import logger
+from src.core import logger
 
 FASTAPI_BACKEND_URL = os.getenv("FASTAPI_BACKEND_URL", "http://localhost:8000")
 

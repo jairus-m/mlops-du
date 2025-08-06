@@ -14,7 +14,7 @@ git clone https://github.com/jairus-m/mlops-du.git
 cd mlops-du 
 bash install-tools.sh
 ```
-This shell script will install `uv` and `task` if they're not already present and will verify the installation.
+This shell script will install `uv`, `task`, `aws`, and `terraform` if they're not already present and will verify the installation.
 
 ## Dependency Management
 The entire monorepo dependency graph is managed by [uv](https://docs.astral.sh/uv/) and uses the [workspaces](https://docs.astral.sh/uv/concepts/projects/workspaces/) feature. This allows __all packages__ within the monorepo to share a single lockfile and a consistent set of dependencies and at the same time, enabling each package to define its own `pyproject.toml`. This greatly simplifies dependency resolution, installation, and script execution for all sub-repos/packages/workspace members. Within each workspace package, I try to add straightforward instructions to execute the individual assignments scripts/apps.
@@ -47,7 +47,7 @@ Assignments are ran with [task](https://taskfile.dev/) which is a task runner/bu
     - Remove Docker Image: `task clean PROJ=movie-sentiment-fastapi`
     - Build + Run Docker Container: `task execute-proj-docker PROJ=movie-sentiment-fastapi`
     
-### [WIP] Assignment 5: Local Deployment (Docker Compose) of Movie Sentiment ML Application
+### Assignment 5: Local Deployment (Docker Compose) of Movie Sentiment ML Application
 - `movie-sentiment-aws/`
   - Run all services: `task aws-dev:up`
   - Get logs: `task aws-dev:logs`
@@ -60,11 +60,7 @@ Assignments are ran with [task](https://taskfile.dev/) which is a task runner/bu
   - Launch AWS deployment: `task aws-prod:apply S3_BUCKET=movie-sentiment-s3`
   - Tear down AWS eployment: `task aws-prod:destory`
   - Notes:
-    - Need to add AWS CLI env vars in `assignments/movie-sentiment-aws/.env` first!
     - Refer to `assignments/movie-sentiment-aws/README.md` for `.env` config instructions
-    - `S3_BUCKET` and `AWS_REGION` variables are optional 
-      - `task aws-prod:s3 S3_BUCKET=your-s3-bucket AWS_REGION=us-west-2`
-      - `task aws-prod:apply S3_BUCKET=your-s3-bucket AWS_REGION=us-west-2`
     - The above task commands must be ran in that particular order (i.e. init > s3 > apply > destroy)
 
 ---

@@ -1,12 +1,12 @@
 # Movie Sentiment Analysis - AWS Deployment
 
-This project deploys a movie sentiment analysis application on AWS using a fully automated Terraform setup. The architecture consists of a FastAPI backend, a Streamlit frontend, and  ML training. Each service runs in a Docker container on their own dedicated EC2 instances.
+This project deploys a movie sentiment analysis application on AWS using a fully automated Terraform setup. The architecture consists of a FastAPI backend, a Streamlit frontend, ML training, and a Streamlit monitoring dashboard. Each service runs in a Docker container on their own dedicated EC2 instances.
 
-This project is structured as a multi-package monorepo using `uv` workspaces. Each application (`fastapi_backend`, `streamlit_frontend`, `sklearn_training`) has its own modules and dependencies while sharing a single `uv.lock` file at the root.
+This project is structured as a multi-package monorepo using `uv` workspaces. Each application (`fastapi_backend`, `streamlit_frontend`, `sklearn_training`, `streamlit_monitoring`) has its own modules and dependencies while sharing a single `uv.lock` file at the root.
 
 ## Basic Architecture
 
-This project is a MINIMAL deployment approach to serving an ML model. This is purely for learning purposes and is missing a lot of MLOps best-practices in terms of observability, monitoring, re-training, CI/CD, etc.
+This project is a MINIMAL deployment approach to serving an ML model. This is purely for learning purposes and is missing a lot of MLOps best-practices in terms of observability, re-training, CI/CD, etc.
 
 <img src="assets/images/architecture.png" width="1000"/>
 
@@ -15,50 +15,72 @@ This project is a MINIMAL deployment approach to serving an ML model. This is pu
 ```bash
 .
 ├── assets
-│   ├── data # Local data stored/staged here
-│   ├── logs # App logs 
-│   └── models # Local model stored/staged here
+│   ├── data    # Local data stored/staged here
+│   ├── images  # Documentation images
+│   ├── logs    # App logs 
+│   └── models  # Local model stored/staged here
 ├── config.yaml # Sets env-aware variables/paths
+├── docker-compose.yml # Docker services configuration
 ├── pyproject.toml # Dependencies
 ├── README.md
 ├── src
+│   ├── core    # Shared utilities
+│   │   ├── __init__.py
+│   │   ├── asset_resolution.py
+│   │   ├── aws.py
+│   │   ├── load_config.py
+│   │   └── logging_config.py
 │   ├── fastapi_backend # Backend service
 │   │   ├── Dockerfile
+│   │   ├── __init__.py
 │   │   ├── main.py
-│   │   ├── model_loader.py
-│   │   └── schemas.py
+│   │   └── utils
+│   │       ├── __init__.py
+│   │       ├── middleware.py
+│   │       ├── model_loader.py
+│   │       └── schemas.py
 │   ├── sklearn_training # ML training service
 │   │   ├── Dockerfile
-│   │   ├── data_loader.py
-│   │   └── train_model.py
-│   └── streamlit_frontend # Frontend service
+│   │   ├── __init__.py
+│   │   ├── train_model.py
+│   │   └── utils
+│   │       ├── __init__.py
+│   │       └── data_loader.py
+│   ├── streamlit_frontend # Frontend service
 │   │   ├── Dockerfile
+│   │   ├── __init__.py
 │   │   └── app.py
-│   └── utils # Shared utils (S3 interaction) need to refactor this..
+│   └── streamlit_monitoring # Monitoring service
+│       ├── Dockerfile
+│       ├── __init__.py
+│       ├── app.py
+│       └── utils
+│           ├── __init__.py
+│           └── data_loader.py
 └── terraform
-   ├── ec2.tf # EC2 config
-   ├── modules # Re-usable modules for Docker deployment
-   │   └── docker_deployment
-   │       ├── main.tf
-   │       └── variables.tf
-   ├── providers.tf
-   ├── s3.tf # S3 config
-   ├── security_groups.tf # Security group config
-   └── variables.tf # Expected vars
+    ├── cloudwatch.tf # CloudWatch config
+    ├── ec2.tf       # EC2 config
+    ├── modules      # Re-usable modules for Docker deployment
+    │   └── docker_deployment
+    │       ├── main.tf
+    │       └── variables.tf
+    ├── providers.tf
+    ├── s3.tf           # S3 config
+    ├── security_groups.tf # Security group config
+    └── variables.tf    # Expected vars
 ```
 
-
-- ML Training:
-  - Traning service on EC2 to download data, train ML model, and push data/model file to S3
-- Backend: 
-  - FastAPI inference service running on EC2
-- Frontend: 
-  - Streamlit application running on EC2
-- Storage:
-  - Data and model file are uploaded, stored, and retrieved from S3
-- Infrastructure and Automation: 
-  - All AWS resources (EC2, S3, Security Groups) are managed by Terraform.
-    - At a high level, EC2 instances are provisioned by Terraform which uses remote-exec provisioners to SSH into each instance after launch. These scripts install Docker/Git/other dependencies, transfer files, build the required Docker images, and orchestrates the three service's containers with the correct environment variables. Configuration files are copied as needed and services are started automatically!
+Architecture Overview:
+- ML Training Service (EC2): Downloads data, trains model, uploads to S3
+- FastAPI Backend (EC2): Provides inference API
+- Streamlit Frontend (EC2): User interface
+- Streamlit Monitoring (EC2): ML Model Monitoring
+- S3: Stores model and data files
+- DynamoDB: Stores ML performance monitoring logs
+- Infrastructure:
+  - Terraform manages AWS resources (EC2, S3, Security Groups, CloudWatch)
+  - Automated deployment with Docker containers
+  - CloudWatch logging
 
 ## Local Dev Deployment 
 
@@ -85,10 +107,11 @@ From the root of the project (`mlops-du/`), you can use the following commands:
 
     You will see the logs from all services streamed to your terminal.
 
-2.  Access the Application
+2.  Access the Applications!
 
     -   **Frontend URL**: [http://localhost:8501](http://localhost:8501)
     -   **Backend API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+    -   **Monitoring URL**: [http://localhost:8502](http://localhost:8501)
 
 3.  View Logs (in a separate terminal)
 
@@ -177,6 +200,8 @@ This workflow provisions the entire infrastructure and deploys the applications 
 Once the `terraform apply` command is complete, it will output the public IP address of the frontend application.
 
 - **Frontend URL**: `http://<FRONTEND_PUBLIC_IP>:8501`
+- **Monitoring URL**: `http://<MONITORING_PUBLIC_IP>:8502`
+- **Backend URL**: `http://<BACKEND_PUBLIC_IP>:8000`
 
 ### Step 4: Cleanup
 
@@ -185,7 +210,14 @@ To tear down all the AWS resources created by this project, run the `destroy` co
   ```bash
   task aws-prod:destroy
   ```
+Note:
 
+If your Terraform lockfiles and states get out of sync and are causing you issues, run:
+
+  ```bash
+  task aws-prod:reset
+  ```
+This will delete all the local Terraform artifacts (to release the lock and reset state) and will re initialize Terraform.
 
 # Screenshots
 
@@ -203,3 +235,22 @@ To tear down all the AWS resources created by this project, run the `destroy` co
 
 #### Streamlit Frontend
 <img src="assets/images/streamlit.png" width="800"/>
+
+### Stramlit Monitoring
+<img src="assets/images/monitoring_1.png" width="800"/>
+
+<img src="assets/images/monitoring_2.png" width="800"/>
+
+<img src="assets/images/monitoring_3.png" width="800"/>
+
+### Log Groups and Streams
+<img src="assets/images/log_group_and_streams.png" width="800"/>
+
+### Traning Logs
+<img src="assets/images/ml_logs.png" width="800"/>
+
+### Backend Logs
+<img src="assets/images/backend_logs.png" width="800"/>
+
+### Frontend Logs
+<img src="assets/images/frontend_logs.png" width="800"/>

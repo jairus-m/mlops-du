@@ -12,7 +12,7 @@ RUN pip install uv
 
 # Copy the application source code, config, and assets into the container
 COPY ./src/fastapi_backend ./src/fastapi_backend
-COPY ./src/utils ./src/utils
+COPY ./src/core ./src/core
 COPY ./config.yaml ./config.yaml
 COPY ./assets ./assets
 COPY pyproject.toml ./

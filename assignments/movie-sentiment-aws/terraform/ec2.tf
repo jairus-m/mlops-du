@@ -48,8 +48,8 @@ locals {
       destination = "/home/ec2-user/app/pyproject.toml"
     },
     {
-      source      = "${path.module}/../src/utils"
-      destination = "/home/ec2-user/app/src/utils"
+      source      = "${path.module}/../src/core"
+      destination = "/home/ec2-user/app/src/core"
     }
   ]
 
@@ -61,7 +61,7 @@ locals {
   ]
 }
 
-# SKLearn Model Training EC2 instance
+# Sklearn Model Training EC2 instance
 resource "aws_instance" "ml_training" {
   instance_type = "t2.micro"
   ami           = data.aws_ami.amazon_linux.id
@@ -71,7 +71,7 @@ resource "aws_instance" "ml_training" {
   iam_instance_profile   = "LabInstanceProfile"
 
   tags = {
-    Name      = "SKLearn Model Training Instance"
+    Name      = "Sklearn Model Training Instance"
     Project   = "Movie-Sentiment-AWS"
     ManagedBy = "Terraform"
   }

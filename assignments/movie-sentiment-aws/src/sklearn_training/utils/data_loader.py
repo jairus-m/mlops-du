@@ -5,7 +5,7 @@ Module for downloading the training dataset and uploading it to S3.
 import shutil
 from pathlib import Path
 import kagglehub
-from src.utils import logger, config, PROJECT_ROOT, upload_to_s3
+from src.core import logger, config, PROJECT_ROOT, upload_to_s3
 
 
 def download_kaggle_dataset() -> Path:

@@ -14,13 +14,13 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 import joblib
 
-from src.utils import (
+from src.core import (
     logger,
     config,
     PROJECT_ROOT,
     upload_to_s3,
 )
-from src.sklearn_training.data_loader import download_kaggle_dataset
+from src.sklearn_training.utils.data_loader import download_kaggle_dataset
 
 pd.set_option("future.no_silent_downcasting", True)
 

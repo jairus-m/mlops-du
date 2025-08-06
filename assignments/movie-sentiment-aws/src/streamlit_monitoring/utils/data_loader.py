@@ -2,7 +2,7 @@
 import pandas as pd
 import json
 import os
-from src.utils import get_asset_path, config, logger
+from src.core import get_asset_path, config, logger
 
 def load_imdb_dataset() -> pd.DataFrame:
     """

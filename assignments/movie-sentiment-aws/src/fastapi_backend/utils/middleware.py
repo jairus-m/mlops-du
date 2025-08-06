@@ -5,7 +5,7 @@ the logging is automatically done for every request and response instead of manu
 
 from fastapi import Request
 from fastapi.responses import Response
-from src.utils import logger
+from src.core import logger
 
 
 async def log_middleware_request(request: Request, call_next):

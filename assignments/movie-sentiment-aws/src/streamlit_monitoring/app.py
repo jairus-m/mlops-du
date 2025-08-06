@@ -2,8 +2,8 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
-from src.streamlit_monitoring.data_loader import load_feedback_logs, load_imdb_dataset, load_all_logs
-from src.utils import logger
+from src.streamlit_monitoring.utils.data_loader import load_feedback_logs, load_imdb_dataset, load_all_logs
+from src.core import logger
 
 st.set_page_config(page_title="Sentiment Model Monitoring", layout="wide")
 logger.info("Streamlit monitoring app started.")
