@@ -9,7 +9,7 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 import pandas as pd
-from src.utils import (
+from src.core import (
     logger,
     get_asset_path,
     prediction_logger,

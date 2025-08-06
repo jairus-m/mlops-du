@@ -11,7 +11,7 @@ WORKDIR /app
 RUN pip install uv
 
 COPY ./src/sklearn_training ./src/sklearn_training
-COPY ./src/utils ./src/utils
+COPY ./src/core ./src/core
 COPY ./config.yaml ./config.yaml
 COPY ./assets ./assets
 COPY pyproject.toml ./

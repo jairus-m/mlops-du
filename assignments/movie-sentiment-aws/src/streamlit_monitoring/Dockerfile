@@ -12,7 +12,7 @@ RUN pip install uv
 
 # Copy the entire src directory to preserve module structure
 COPY ./src/streamlit_monitoring ./src/streamlit_monitoring
-COPY ./src/utils ./src/utils
+COPY ./src/core ./src/core
 COPY ./config.yaml ./config.yaml
 COPY ./assets ./assets
 COPY pyproject.toml ./

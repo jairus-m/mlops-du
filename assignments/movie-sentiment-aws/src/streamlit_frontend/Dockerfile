@@ -11,7 +11,7 @@ WORKDIR /app
 RUN pip install uv
 
 COPY ./src/streamlit_frontend ./src/streamlit_frontend
-COPY ./src/utils ./src/utils
+COPY ./src/core ./src/core
 COPY ./config.yaml ./config.yaml
 COPY ./assets ./assets
 COPY pyproject.toml ./

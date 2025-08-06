@@ -5,7 +5,7 @@ Module for loading the sentiment analysis model.
 import sys
 import joblib
 from sklearn.pipeline import Pipeline
-from src.utils import logger, get_asset_path
+from src.core import logger, get_asset_path
 
 
 def load_model() -> Pipeline:
