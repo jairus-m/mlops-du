@@ -28,6 +28,7 @@ This project is a MINIMAL deployment approach to serving an ML model. This is pu
 │   │   ├── __init__.py
 │   │   ├── asset_resolution.py
 │   │   ├── aws.py
+│   │   ├── base_logger.py
 │   │   ├── load_config.py
 │   │   └── logging_config.py
 │   ├── fastapi_backend # Backend service
@@ -254,3 +255,6 @@ This will delete all the local Terraform artifacts (to release the lock and rese
 
 ### Frontend Logs
 <img src="assets/images/frontend_logs.png" width="800"/>
+
+### Monitoring Logs
+<img src="assets/images/monitoring_logs.png" width="800"/>

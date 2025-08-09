@@ -1,10 +1,3 @@
-"""
-Utility functions for the movie sentiment analysis project.
-
-This module handles environment-aware configuration, logging, and asset management
-(fetching from local disk in development or S3 in production).
-"""
-
 import logging
 import os
 import sys

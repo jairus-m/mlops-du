@@ -2,8 +2,10 @@ from botocore.exceptions import ClientError
 import os
 from pathlib import Path
 import boto3
-from .logging_config import logger
+from .base_logger import setup_base_logger
 
+# Create AWS-specific logger
+logger = setup_base_logger("aws")
 
 def upload_to_s3(local_path: Path, s3_key: str) -> bool:
     """
@@ -35,7 +37,7 @@ def upload_to_s3(local_path: Path, s3_key: str) -> bool:
         return False
 
 
-def download_from_s3(bucket: str, key: str, local_path: Path) -> bool:
+def download_from_s3(bucket: str, key: str, local_path: Path, needs_full_download: bool = False) -> bool:
     """
     Downloads a file from an S3 bucket to a local path.
 
@@ -43,11 +45,12 @@ def download_from_s3(bucket: str, key: str, local_path: Path) -> bool:
         bucket (str): The S3 bucket name.
         key (str): The key (path) of the object in the bucket.
         local_path (Path): The local destination path.
+        needs_full_download (bool): If True, the file will be downloaded even if it already exists locally.
 
     Returns:
         bool: True if download was successful or file already exists, False otherwise.
     """
-    if local_path.exists():
+    if local_path.exists() and needs_full_download is False:
         logger.info(f"File {local_path} already exists locally. Skipping S3 download.")
         return True
     try:

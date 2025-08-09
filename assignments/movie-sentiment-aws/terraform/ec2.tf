@@ -115,6 +115,25 @@ resource "aws_instance" "frontend" {
   }
 }
 
+# Monitoring EC2 instance
+resource "aws_instance" "monitoring" {
+  depends_on = [
+    aws_instance.frontend
+  ]
+  instance_type = "t2.micro"
+  ami           = data.aws_ami.amazon_linux.id
+
+  vpc_security_group_ids = [aws_security_group.monitoring.id]
+  key_name               = aws_key_pair.deployer.key_name
+  iam_instance_profile   = "LabInstanceProfile"
+
+  tags = {
+    Name      = "Streamlit Monitoring Instance"
+    Project   = "Movie-Sentiment-AWS"
+    ManagedBy = "Terraform"
+  }
+}
+
 module "ml_training_deployment" {
   source      = "./modules/docker_deployment"
   instance_ip = aws_instance.ml_training.public_ip
@@ -177,6 +196,27 @@ module "frontend_deployment" {
   ]
 }
 
+module "monitoring_deployment" {
+  source    = "./modules/docker_deployment"
+  depends_on = [module.frontend_deployment]
+  instance_ip = aws_instance.monitoring.public_ip
+  private_key = tls_private_key.rsa.private_key_pem
+
+  file_sources = concat(local.common_files, [
+    {
+      source      = "${path.module}/../src/streamlit_monitoring"
+      destination = "/home/ec2-user/app/src/streamlit_monitoring"
+    }
+  ])
+
+  docker_setup_commands = local.docker_setup_commands
+
+  build_and_run_commands = [
+    "sudo docker build -f src/streamlit_monitoring/Dockerfile -t movie-sentiment-monitoring .",
+    "sudo docker run -d -p 8502:8502 --restart=always --name monitoring ${join(" ", local.awslogs_config)} --log-opt awslogs-stream=${aws_instance.monitoring.id}-monitoring ${join(" ", local.common_env_vars)} movie-sentiment-monitoring:latest"
+  ]
+}
+
 # Data source to find the latest Amazon Linux AMI
 data "aws_ami" "amazon_linux" {
   most_recent = true
@@ -195,19 +235,9 @@ output "frontend_url" {
   value       = "http://${aws_instance.frontend.public_ip}:8501"
 }
 
-output "frontend_public_ip" {
-  description = "Public IP address of the Streamlit frontend instance."
-  value       = aws_instance.frontend.public_ip
-}
-
-output "backend_public_ip" {
-  description = "Public IP address of the FastAPI backend instance."
-  value       = aws_instance.backend.public_ip
-}
-
-output "ssh_command_frontend" {
-  description = "Command to SSH into the frontend instance."
-  value       = "ssh -i ${local_sensitive_file.private_key.filename} ec2-user@${aws_instance.frontend.public_ip}"
+output "monitoring_url" {
+  description = "HTTP URL for accessing the Streamlit monitoring."
+  value       = "http://${aws_instance.monitoring.public_ip}:8502"
 }
 
 output "ssh_command_backend" {
