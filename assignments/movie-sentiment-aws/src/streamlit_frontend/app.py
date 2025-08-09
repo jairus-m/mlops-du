@@ -161,6 +161,6 @@ st.markdown(
     f"Backend running at: `{FASTAPI_BACKEND_URL}`"
 )
 st.markdown(
-    "🔗 [View source on GitHub](https://github.com/jairus-m/mlops-du)",
+    "🔗 [View source on GitHub](https://github.com/jairus-m/mlops-du/tree/main/assignments/movie-sentiment-aws)",
     unsafe_allow_html=True,
 )
