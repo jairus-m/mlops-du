@@ -71,3 +71,39 @@ resource "aws_security_group" "backend" {
     ManagedBy = "Terraform"
   }
 }
+
+# This security group is for the Streamlit monitoring instance.
+resource "aws_security_group" "monitoring" {
+  name        = "streamlit-monitoring-sg"
+  description = "Allow HTTP traffic to Streamlit monitoring"
+
+  # Allow incoming traffic on port 8502 (Streamlit) from anywhere.
+  ingress {
+    from_port   = 8502
+    to_port     = 8502
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Allow SSH access from anywhere (for deployment)
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Allow all outgoing traffic.
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name      = "Streamlit Monitoring SG"
+    Project   = "Movie-Sentiment-AWS"
+    ManagedBy = "Terraform"
+  }
+}
