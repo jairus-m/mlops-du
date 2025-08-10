@@ -50,6 +50,7 @@ Assignments are ran with [task](https://taskfile.dev/) which is a task runner/bu
 ### Assignment 5: Local Deployment (Docker Compose) of Movie Sentiment ML Application
 - `movie-sentiment-aws/`
   - Run all services: `task aws-dev:up`
+  - Run evaluation script: `task aws-dev:eval`
   - Get logs: `task aws-dev:logs`
   - Stop all services: `task aws-dev:down`
 
