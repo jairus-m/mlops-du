@@ -4,6 +4,7 @@ import os
 
 FASTAPI_URL = "http://localhost:8000/predict"
 
+
 def evaluate_api():
     """
     Evaluates the sentiment analysis API by using the test data in `assets/data/test.json`
@@ -24,7 +25,6 @@ def evaluate_api():
 
     url = FASTAPI_URL
 
-
     correct_predictions = 0
     total_predictions = len(test_data)
 
@@ -35,7 +35,7 @@ def evaluate_api():
         if not text or not true_label:
             print(f"Skipping invalid item: {item}")
             continue
-    
+
         try:
             response = requests.post(url, json={"text": text})
             response.raise_for_status()
@@ -53,6 +53,7 @@ def evaluate_api():
         print(f"Accuracy: {accuracy:.2f}% ({correct_predictions}/{total_predictions})")
     else:
         print("No test data found to evaluate.")
+
 
 if __name__ == "__main__":
     evaluate_api()

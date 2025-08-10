@@ -53,4 +53,5 @@ def load_config() -> Dict[str, Any]:
         logging.critical(f"Error loading configuration: {e}")
         sys.exit(1)
 
+
 config = load_config()

@@ -5,7 +5,7 @@ This API provides endpoints for sentiment analysis of movie reviews.
 It is environment-aware and can load assets from local disk or S3.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 import pandas as pd
@@ -63,7 +63,7 @@ async def health_check() -> dict:
         assert callable(model.predict_proba)
         return {
             "status": "healthy",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}")
@@ -82,15 +82,14 @@ async def predict(request: PredictRequest) -> SentimentResponse:
     try:
         prediction = model.predict([request.text])[0]
         sentiment = "positive" if prediction == 1 else "negative"
-        
-        
+
         prediction = {
             "endpoint": "/predict",
             "request_text": request.text,
             "predicted_sentiment": sentiment,
         }
         prediction_logger.info(prediction)
-        
+
         return {"sentiment": sentiment}
     except Exception as e:
         logger.error(f"Error making prediction: {str(e)}")
@@ -115,7 +114,7 @@ async def predict_proba(request: PredictRequest) -> SentimentProbabilityResponse
         else:
             prediction_str = "negative"
             probability = probabilities[0]
-            
+
         prediction = {
             "endpoint": "/predict_proba",
             "request_text": request.text,
@@ -123,7 +122,7 @@ async def predict_proba(request: PredictRequest) -> SentimentProbabilityResponse
             "probability": round(probability, 2),
         }
         prediction_logger.info(prediction)
-    
+
         return {"sentiment": prediction_str, "probability": round(probability, 2)}
     except ValueError as e:
         logger.error(f"Pydantic validation error: {str(e)}")
@@ -151,7 +150,7 @@ async def example() -> ExampleResponse:
     except Exception as e:
         logger.error(f"Error getting random review: {str(e)}")
         raise HTTPException(status_code=500, detail="Error retrieving example review")
-    
+
 
 @app.post("/true_sentiment")
 async def true_sentiment(request: SentimentFeedback) -> dict:
@@ -173,7 +172,10 @@ async def true_sentiment(request: SentimentFeedback) -> dict:
         return {"message": "Feedback received"}
     except Exception as e:
         logger.error(f"Error processing sentiment feedback: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error processing sentiment feedback")
+        raise HTTPException(
+            status_code=500, detail="Error processing sentiment feedback"
+        )
+
 
 @app.get("/favicon.ico")
 async def favicon():

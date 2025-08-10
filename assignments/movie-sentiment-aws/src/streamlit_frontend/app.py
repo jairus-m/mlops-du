@@ -40,8 +40,10 @@ def handle_feedback(is_correct: bool):
         if is_correct:
             true_sentiment = predicted_sentiment
         else:
-            true_sentiment = "positive" if predicted_sentiment == "negative" else "negative"
-            
+            true_sentiment = (
+                "positive" if predicted_sentiment == "negative" else "negative"
+            )
+
         feedback_payload = {
             "request_text": st.session_state.review_text,
             "predicted_sentiment": predicted_sentiment,
@@ -51,7 +53,9 @@ def handle_feedback(is_correct: bool):
         }
         try:
             logger.info(f"Submitting feedback: {feedback_payload}")
-            requests.post(f"{FASTAPI_BACKEND_URL}/true_sentiment", json=feedback_payload)
+            requests.post(
+                f"{FASTAPI_BACKEND_URL}/true_sentiment", json=feedback_payload
+            )
             st.session_state.feedback_submitted = True
             st.toast("Thank you for your feedback!")
             logger.info("Feedback submitted successfully.")
@@ -80,7 +84,9 @@ if st.button("Get a Random Review Example"):
     except requests.exceptions.RequestException as e:
         st.error(f"Could not connect to the backend: {e}")
         st.warning("Please ensure the FastAPI backend service is running.")
-        logger.error(f"Could not connect to backend for random review: {e}", exc_info=True)
+        logger.error(
+            f"Could not connect to backend for random review: {e}", exc_info=True
+        )
 
 review_text = st.text_area(
     "Enter your movie review here:",
@@ -98,14 +104,18 @@ if st.button("Analyze Sentiment"):
         try:
             with st.spinner("Analyzing..."):
                 payload = {"text": st.session_state.review_text}
-                logger.info(f"Sending request to /predict_proba with payload: {{'text': '{st.session_state.review_text[:50]}...'}}")
+                logger.info(
+                    f"Sending request to /predict_proba with payload: {{'text': '{st.session_state.review_text[:50]}...'}}"
+                )
                 response = requests.post(
                     f"{FASTAPI_BACKEND_URL}/predict_proba", json=payload
                 )
                 response.raise_for_status()
                 st.session_state.prediction_result = response.json()
                 st.session_state.feedback_submitted = False
-                logger.info(f"Received prediction: {st.session_state.prediction_result}")
+                logger.info(
+                    f"Received prediction: {st.session_state.prediction_result}"
+                )
 
         except requests.exceptions.RequestException as e:
             st.error(f"Error communicating with the backend: {e}")
@@ -113,11 +123,15 @@ if st.button("Analyze Sentiment"):
                 f"Please ensure the backend is running and accessible at `{FASTAPI_BACKEND_URL}`."
             )
             st.session_state.prediction_result = None
-            logger.error(f"Error communicating with backend for prediction: {e}", exc_info=True)
+            logger.error(
+                f"Error communicating with backend for prediction: {e}", exc_info=True
+            )
         except Exception as e:
             st.error(f"An unexpected error occurred: {e}")
             st.session_state.prediction_result = None
-            logger.exception(f"An unexpected error occurred during sentiment analysis: {e}")
+            logger.exception(
+                f"An unexpected error occurred during sentiment analysis: {e}"
+            )
 
 if st.session_state.prediction_result:
     result = st.session_state.prediction_result
@@ -126,13 +140,17 @@ if st.session_state.prediction_result:
 
     st.subheader("Analysis Result")
     if sentiment == "positive":
-        logger.info(f"Displaying positive sentiment result with {probability * 100:.2f}% confidence")
+        logger.info(
+            f"Displaying positive sentiment result with {probability * 100:.2f}% confidence"
+        )
         st.success(
             f"**Positive 👍** sentiment with a confidence of "
             f"**{probability * 100:.2f}%**"
         )
     elif sentiment == "negative":
-        logger.info(f"Displaying negative sentiment result with {probability * 100:.2f}% confidence")
+        logger.info(
+            f"Displaying negative sentiment result with {probability * 100:.2f}% confidence"
+        )
         st.error(
             f"**Negative 👎** sentiment with a confidence of "
             f"**{probability * 100:.2f}%**"
@@ -145,10 +163,20 @@ if st.session_state.prediction_result:
         st.write("Was this prediction correct?")
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("Correct ✅", on_click=handle_feedback, args=(True,), use_container_width=True):
+            if st.button(
+                "Correct ✅",
+                on_click=handle_feedback,
+                args=(True,),
+                use_container_width=True,
+            ):
                 logger.info("User clicked 'Correct' feedback button")
         with col2:
-            if st.button("Incorrect ❌", on_click=handle_feedback, args=(False,), use_container_width=True):
+            if st.button(
+                "Incorrect ❌",
+                on_click=handle_feedback,
+                args=(False,),
+                use_container_width=True,
+            ):
                 logger.info("User clicked 'Incorrect' feedback button")
 
 elif st.session_state.feedback_submitted:
