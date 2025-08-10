@@ -137,6 +137,12 @@ tasks:
     dir: assignments/movie-sentiment-aws
     cmds:
       - docker-compose logs -f
+  
+  aws-dev:eval:
+    desc: Runs the evaluator script
+    dir: assignments/movie-sentiment-aws
+    cmds:
+      - uv run assets/scripts/evaluator.py
 
   aws-prod:init:
     desc: Initialize Terraform

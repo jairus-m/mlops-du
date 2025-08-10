@@ -4,9 +4,7 @@ This project deploys a movie sentiment analysis application on AWS using a fully
 
 This project is structured as a multi-package monorepo using `uv` workspaces. Each application (`fastapi_backend`, `streamlit_frontend`, `sklearn_training`, `streamlit_monitoring`) has its own modules and dependencies while sharing a single `uv.lock` file at the root.
 
-## Basic Architecture
-
-This project is a MINIMAL deployment approach to serving an ML model. This is purely for learning purposes and is missing a lot of MLOps best-practices in terms of observability, re-training, CI/CD, etc.
+## AWS Architecture
 
 <img src="assets/images/architecture.png" width="1000"/>
 
@@ -18,7 +16,8 @@ This project is a MINIMAL deployment approach to serving an ML model. This is pu
 │   ├── data    # Local data stored/staged here
 │   ├── images  # Documentation images
 │   ├── logs    # App logs 
-│   └── models  # Local model stored/staged here
+│   ├── models  # Local model stored/staged here
+│   └── scripts 
 ├── config.yaml # Sets env-aware variables/paths
 ├── docker-compose.yml # Docker services configuration
 ├── pyproject.toml # Dependencies
@@ -83,6 +82,19 @@ Architecture Overview:
   - Automated deployment with Docker containers
   - CloudWatch logging
 
+## Local Architecture
+Locally, this project is orchestrated by Docker Compose. Each service is still containerized with the same exact logic/code flow as the AWS deployment and has the same overall architecture as the depicted diagram above. However, when running with the environment variable `APP_ENV=development` (automatically done in `task aws-dev:up`), the application uses the `config.yaml` to determine which local file paths to use instead of S3:
+
+```yaml
+development:
+  paths: # Local file paths
+    data: "assets/data/IMDB Dataset.csv"
+    model: "assets/models/sentiment_model.pkl"
+  prediction_logging:
+    handler: "file"
+    path: "assets/logs/prediction_logs.json"    
+```
+
 ## Local Dev Deployment 
 
 ### Prerequisites
@@ -110,16 +122,39 @@ From the root of the project (`mlops-du/`), you can use the following commands:
 
 2.  Access the Applications!
 
-    -   **Frontend URL**: [http://localhost:8501](http://localhost:8501)
-    -   **Backend API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
-    -   **Monitoring URL**: [http://localhost:8502](http://localhost:8501)
+    - **Frontend URL**: [http://localhost:8501](http://localhost:8501)
+      - Write a review
+      - Get the predicted sentiment
+      - Provide feedback for whether the sentiment was correct or not
+    - **Monitoring URL**: [http://localhost:8502](http://localhost:8502)
+      - You can view the performance/status of the ML sentiment app here
+    - **Backend API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+    - Note: If you want to follow the logs of the running services without blocking your main terminal, you can run:
+      ```bash
+      task aws-dev:logs
+      ```
 
-3.  View Logs (in a separate terminal)
+3. With the services up (mainly FastAPI), you can run tests via the eval task or manually running `CURL` commands:
 
-    If you want to follow the logs of the running services without blocking your main terminal, you can run:
-
+    Using the evaluator script in `assets/scrpits/evaluator.py` via task:
     ```bash
-    task aws-dev:logs
+    task aws-dev:eval
+    ```
+
+    This should output:
+    ```bash
+    Accuracy: 91.38% (159/174)
+    ```
+
+    Using `curl` commands:
+    ```bash
+    curl http://localhost:8000/health
+
+    curl -X POST http://localhost:8000/predict -H "Content-Type: application/json" -d '{"text": "Transformers was great."}'
+
+    curl -X POST http://localhost:8000/predict_proba -H "Content-Type: application/json" -d '{"text": "Transformers was great."}'
+
+    curl http://localhost:8000/example
     ```
 
 4.  Stop and Clean Up
@@ -234,7 +269,7 @@ This will delete all the local Terraform artifacts (to release the lock and rese
 #### FastAPI Backend Docs Endpoint
 <img src="assets/images/fastapi.png" width="800"/>
 
-#### Streamlit Frontend
+#### Streamlit Frontend with Feedback for Monitoring
 <img src="assets/images/streamlit.png" width="800"/>
 
 ### Stramlit Monitoring
