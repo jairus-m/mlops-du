@@ -6,7 +6,7 @@ It is environment-aware and can load assets from local disk or S3.
 """
 
 from datetime import datetime, timezone
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException, Response, Depends
 from starlette.middleware.base import BaseHTTPMiddleware
 import pandas as pd
 from src.core import (
@@ -33,9 +33,13 @@ app = FastAPI()
 app.add_middleware(BaseHTTPMiddleware, dispatch=log_middleware_request)
 app.add_middleware(BaseHTTPMiddleware, dispatch=log_middleware_response)
 
-# Load the model on startup
-model = load_model()
 logger.info("FastAPI App initialized successfully!")
+
+
+# Dependency to get model
+def get_model():
+    """Dependency to get the ML model"""
+    return load_model()
 
 
 @app.get("/")
@@ -49,7 +53,7 @@ async def root() -> dict:
 
 
 @app.get("/health")
-async def health_check() -> dict:
+async def health_check(model=Depends(get_model)) -> dict:
     """
     Health check endpoint
     Returns:
@@ -71,7 +75,9 @@ async def health_check() -> dict:
 
 
 @app.post("/predict")
-async def predict(request: PredictRequest) -> SentimentResponse:
+async def predict(
+    request: PredictRequest, model=Depends(get_model)
+) -> SentimentResponse:
     """
     Predict sentiment endpoint
     Args:
@@ -97,7 +103,9 @@ async def predict(request: PredictRequest) -> SentimentResponse:
 
 
 @app.post("/predict_proba")
-async def predict_proba(request: PredictRequest) -> SentimentProbabilityResponse:
+async def predict_proba(
+    request: PredictRequest, model=Depends(get_model)
+) -> SentimentProbabilityResponse:
     """
     Predict sentiment with probability endpoint based on the input text.
     Args:
