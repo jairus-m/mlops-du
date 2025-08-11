@@ -37,6 +37,11 @@ monitoring = [
 ]
 dev = [
     "ruff>=0.12.0",
+    "pytest>=8.4.1",
+    "pytest-mock",
+    "pytest-asyncio",
+    "pytest-timeout",
+    "pytest-xdist",
 ]
 
 [tool.setuptools]
