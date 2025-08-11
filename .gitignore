@@ -6,6 +6,7 @@
 *.log
 *.pkl
 .env
+_tests.md
 terraform.tfvars
 deployer-key.pem
 *.tfstate

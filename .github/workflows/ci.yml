@@ -1,0 +1,38 @@
+name: CI/CD
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'assignments/movie-sentiment-aws/src'
+      - 'assignments/movie-sentiment-aws/tests'
+      - 'assignments/movie-sentiment-aws/config.yaml'
+      - 'assignments/movie-sentiment-aws/pyproject.toml'
+
+jobs:
+  lint:
+    # if: github.event_name == 'pull_request'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Run ruff linting
+        working-directory: assignments/movie-sentiment-aws
+        run: uvx ruff check .
+
+      - name: Run ruff format check
+        working-directory: assignments/movie-sentiment-aws
+        run: uvx ruff format --check .
+
+  unit-tests:
+    # needs: [lint]
+    # if: github.event_name == 'pull_request'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      
+      - name: Pytest
+        run: |
+          task aws-dev:unit
+      

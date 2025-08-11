@@ -5,47 +5,57 @@ import os
 from .load_config import config
 from .base_logger import setup_base_logger, PROJECT_ROOT
 
+
 class JsonFormatter(logging.Formatter):
     """
     Formats log records as JSON strings.
     """
+
     def format(self, record):
         log_record = {
             "timestamp": self.formatTime(record, self.datefmt),
-            "pathname": record.pathname
+            "pathname": record.pathname,
         }
         if isinstance(record.msg, dict):
             log_record.update(record.msg)
         else:
             log_record["message"] = record.getMessage()
-        
+
         return json.dumps(log_record)
+
 
 class S3FileHandler(logging.Handler):
     """
     A logging handler that appends logs to a file in S3.
     """
+
     def __init__(self, bucket: str, key: str):
         super().__init__()
         self.bucket = bucket
         self.key = key
-        self.local_temp_path = PROJECT_ROOT / "assets" / "logs" / "temp_prediction_logs.json"
+        self.local_temp_path = (
+            PROJECT_ROOT / "assets" / "logs" / "temp_prediction_logs.json"
+        )
         self.local_temp_path.parent.mkdir(parents=True, exist_ok=True)
 
     def emit(self, record):
-        from .aws import upload_to_s3, download_from_s3  # Import here to avoid circular dependency
-        
+        from .aws import (
+            upload_to_s3,
+            download_from_s3,
+        )  # Import here to avoid circular dependency
+
         log_entry = self.format(record)
-        
+
         # Download the current log file from S3, if it exists
         download_from_s3(self.bucket, self.key, self.local_temp_path)
-        
+
         # Append the new log entry
         with open(self.local_temp_path, "a") as f:
             f.write(log_entry + "\n")
-            
+
         # Upload the updated log file back to S3
         upload_to_s3(self.local_temp_path, self.key)
+
 
 def setup_prediction_logger(config: dict) -> logging.Logger:
     """
@@ -80,15 +90,18 @@ def setup_prediction_logger(config: dict) -> logging.Logger:
         log_path_str = log_config.get("path", "assets/logs/prediction_logs.json")
         log_path = PROJECT_ROOT / log_path_str
         log_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         fh = RotatingFileHandler(log_path, maxBytes=5 * 1024 * 1024, backupCount=5)
         fh.setFormatter(JsonFormatter())
         logger.addHandler(fh)
     else:
-        logger.error(f"Invalid prediction_logging handler for env '{env}': {handler_type}")
+        logger.error(
+            f"Invalid prediction_logging handler for env '{env}': {handler_type}"
+        )
         logger.addHandler(logging.NullHandler())
 
     return logger
+
 
 # Create the loggers using base configuration
 logger = setup_base_logger("main", config.get("main_logging", {}))

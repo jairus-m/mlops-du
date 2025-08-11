@@ -1,4 +1,3 @@
-
 import pandas as pd
 import json
 import os
@@ -63,10 +62,14 @@ def load_all_logs() -> list:
             return logs
 
         # Define a local path to download the S3 file
-        local_log_path = Path(config["project_root"]) / "assets" / "logs" / "prediction_logs_s3.json"
+        local_log_path = (
+            Path(config["project_root"]) / "assets" / "logs" / "prediction_logs_s3.json"
+        )
         local_log_path.parent.mkdir(parents=True, exist_ok=True)
 
-        if download_from_s3(bucket_name, s3_key, local_log_path, needs_full_download=True):
+        if download_from_s3(
+            bucket_name, s3_key, local_log_path, needs_full_download=True
+        ):
             if local_log_path.exists():
                 try:
                     with open(local_log_path, "r") as f:
@@ -76,7 +79,6 @@ def load_all_logs() -> list:
                     logger.error(f"Error reading or parsing log file from S3: {e}")
         else:
             logger.warning("Could not download logs from S3. File might not exist yet.")
-
 
     return logs
 

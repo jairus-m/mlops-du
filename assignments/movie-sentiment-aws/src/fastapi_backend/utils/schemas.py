@@ -72,6 +72,7 @@ class SentimentFeedback(BaseModel):
             "is_sentiment_correct": false
         }
     """
+
     request_text: str
     predicted_sentiment: str
     probability: float

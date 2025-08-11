@@ -7,6 +7,7 @@ from .base_logger import setup_base_logger
 # Create AWS-specific logger
 logger = setup_base_logger("aws")
 
+
 def upload_to_s3(local_path: Path, s3_key: str) -> bool:
     """
     Uploads a local file to an S3 bucket.
@@ -37,7 +38,9 @@ def upload_to_s3(local_path: Path, s3_key: str) -> bool:
         return False
 
 
-def download_from_s3(bucket: str, key: str, local_path: Path, needs_full_download: bool = False) -> bool:
+def download_from_s3(
+    bucket: str, key: str, local_path: Path, needs_full_download: bool = False
+) -> bool:
     """
     Downloads a file from an S3 bucket to a local path.
 

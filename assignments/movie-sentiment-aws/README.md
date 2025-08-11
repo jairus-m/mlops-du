@@ -1,5 +1,28 @@
 # Movie Sentiment Analysis - AWS Deployment
 
+## Table of Contents
+- [Movie Sentiment Analysis - AWS Deployment](#movie-sentiment-analysis---aws-deployment)
+  - [AWS Architecture](#aws-architecture)
+    - [Filetree](#filetree)
+  - [Local Architecture](#local-architecture)
+  - [Local Dev Deployment](#local-dev-deployment)
+    - [Prerequisites](#prerequisites)
+    - [Configuration for Local Deployment](#configuration-for-local-deployment)
+    - [Local Deployment with Docker Compose](#local-development-with-docker-compose)
+    - [Unit Tests](#unit-tests)
+  - [AWS Prod Deployment](#aws-prod-deployment)
+    - [Prerequisites](#prerequisites-1)
+    - [Configuration for AWS Deployment](#configuration-for-aws-deployment)
+    - [AWS Deployment with Terraform](#aws-deployment-with-terraform)
+      - [Step 1: Initialize Terraform and Create S3 Bucket](#step-1-initialize-terraform-and-create-s3-bucket)
+      - [Step 2: Deploy the Application](#step-2-deploy-the-application)
+      - [Step 3: Access the App](#step-3-access-the-app)
+      - [Step 4: Cleanup](#step-4-cleanup)
+  - [CI/CD Pipeline](#cicd-pipeline)
+    - [Continuous Integration (CI)](#continuous-integration-ci)
+    - [Continuous Deployment (CD)](#continuous-deployment-cd)
+  - [Screenshots](#screenshots)
+
 This project deploys a movie sentiment analysis application on AWS using a fully automated Terraform setup. The architecture consists of a FastAPI backend, a Streamlit frontend, ML training, and a Streamlit monitoring dashboard. Each service runs in a Docker container on their own dedicated EC2 instances.
 
 This project is structured as a multi-package monorepo using `uv` workspaces. Each application (`fastapi_backend`, `streamlit_frontend`, `sklearn_training`, `streamlit_monitoring`) has its own modules and dependencies while sharing a single `uv.lock` file at the root.
@@ -104,7 +127,7 @@ development:
   - [task installation](https://taskfile.dev/installation/)
 - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) installed on your local machine.
 
-### Local Configuration
+### Configuration for Local Deployment
 For running this project on your local machine, no configuration is needed. The application will use your local files instead of S3 for storage and your CPU for computation.
 
 ### Local Development with Docker Compose
@@ -165,6 +188,9 @@ From the root of the project (`mlops-du/`), you can use the following commands:
     task aws-dev:down
     ```
 
+### Unit Tests:
+Note: Locally, you can also run unit tests via `task aws-dev:unit`. Unit tests in `tests/` do not need running services. They mock dependencies like the Kaggle dataset download, model training pipeline, Streamlit frontend imports, FastAPI backend, etc. to ensure core functionality works in isolation.
+
 ## AWS Prod Deployment 
 
 ### Prerequisites
@@ -195,11 +221,11 @@ TF_VAR_aws_session_token=$AWS_SESSION_TOKEN
 While these AWS credentials are really only used in production, they are needed locally for Terraform for authentication in order to run CLI commands like `plan` and `apply` as well as for passing directly to the EC2 instances at launch time.
 
 
-## AWS Deployment with Terraform
+### AWS Deployment with Terraform
 
 This workflow provisions the entire infrastructure and deploys the applications with Terraform.
 
-### Step 1: Initialize Terraform and Create S3 Bucket
+#### Step 1: Initialize Terraform and Create S3 Bucket
 
 1.  Initialize Terraform
 
@@ -219,7 +245,7 @@ This workflow provisions the entire infrastructure and deploys the applications 
 
     > **Note**: Because the `awsstudent` role has very limited permissions, there are issues with Terraform when it tries to automatically check the state of some resources (S3 mainly) via the object lock. Because of this, you have to manually create an S3 bucket.
 
-### Step 2: Deploy the Application
+#### Step 2: Deploy the Application
 
 1.  Apply the Terraform Plan
 
@@ -231,7 +257,7 @@ This workflow provisions the entire infrastructure and deploys the applications 
 
     This process will take a few minutes as the EC2 instances need to start, transfer necessary application files, install dependencies, build the Docker images, and run them.
 
-### Step 3: Access the App
+#### Step 3: Access the App
 
 Once the `terraform apply` command is complete, it will output the public IP address of the frontend application.
 
@@ -239,7 +265,7 @@ Once the `terraform apply` command is complete, it will output the public IP add
 - **Monitoring URL**: `http://<MONITORING_PUBLIC_IP>:8502`
 - **Backend URL**: `http://<BACKEND_PUBLIC_IP>:8000`
 
-### Step 4: Cleanup
+#### Step 4: Cleanup
 
 To tear down all the AWS resources created by this project, run the `destroy` command from the `terraform` directory.
 
@@ -255,7 +281,32 @@ If your Terraform lockfiles and states get out of sync and are causing you issue
   ```
 This will delete all the local Terraform artifacts (to release the lock and reset state) and will re initialize Terraform.
 
-# Screenshots
+## CI/CD Pipeline
+
+This project includes a CI/CD pipeline using GitHub Actions to automate linting and testing.
+
+### Continuous Integration (CI)
+
+The CI pipeline is defined in `.github/workflows/ci.yml` and is triggered on every pull request to the `main` branch that includes changes to specific sub-directories within the `assignments/movie-sentiment-aws/` directory.
+
+The pipeline consists of two main jobs:
+
+1.  `lint`:
+    - Runs `ruff check .` to enforce code style and quality.
+    -  Runs `ruff format --check .` to ensure code is formatted correctly.
+
+2.  `unit-tests`:
+    - Executes the pytest unit tests in `/tests` using the `task aws-dev:unit` command
+
+Both jobs use a composite, reusable, and cached action defined in `.github/actions/setup/action.yml` to set up the necessary environment, including Python, `uv`, and `task` that are used.
+
+### Continuous Deployment (CD)
+
+Currently, the deployment process is manual (via the `task aws-prod:` commands).
+
+However, a potential future improvement for CD would be to extend the GitHub Actions workflow to involve a new job that runs `terraform apply` automatically when changes are merged into the `main` branch. The workflow would also be triggered further by filtering for modifications to specific directories like `src/` or `terraform/`. This would fully automate the deployment of new versions of the application.
+
+## Screenshots
 
 #### Terraform CLI Output 
 <img src="assets/images/terraform.png" width="800"/>
