@@ -144,6 +144,13 @@ tasks:
     cmds:
       - uv run assets/scripts/evaluator.py
 
+  aws-dev:unit:
+    desc: Runs the unit tests
+    dir: assignments/movie-sentiment-aws
+    cmds:
+      - uv sync --all-packages
+      - uv run pytest
+
   aws-prod:init:
     desc: Initialize Terraform
     dir: assignments/movie-sentiment-aws/terraform
