@@ -192,9 +192,3 @@ async def favicon():
     to prevent 404 Error logs.
     """
     return Response(status_code=204, content="No favicon here!")
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8000)
