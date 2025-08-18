@@ -4,8 +4,8 @@ on:
   pull_request:
     branches: [ main ]
     paths:
-      - 'assignments/movie-sentiment-aws/src'
-      - 'assignments/movie-sentiment-aws/tests'
+      - 'assignments/movie-sentiment-aws/src/**'
+      - 'assignments/movie-sentiment-aws/tests/**'
       - 'assignments/movie-sentiment-aws/config.yaml'
       - 'assignments/movie-sentiment-aws/pyproject.toml'
 
