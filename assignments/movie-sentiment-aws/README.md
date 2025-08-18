@@ -159,7 +159,16 @@ From the root of the project (`mlops-du/`), you can use the following commands:
 
 3. With the services up (mainly FastAPI), you can run tests via the eval task or manually running `CURL` commands:
 
-    Using the evaluator script in `assets/scrpits/evaluator.py` via task:
+    NOTE: Make sure the FastAPI service is up by running either:
+    ```
+    # From step 1 above
+    task aws-dev:up # automatically uses PORT 8000
+
+    # Or spin up the FastAPI service by itself
+    task execute-proj-docker PROJ=movie-sentiment-fastapi PORT=8000
+    ```
+
+    Then, use the evaluator script in `assets/scrpits/evaluator.py` via task:
     ```bash
     task aws-dev:eval
     ```
@@ -169,7 +178,7 @@ From the root of the project (`mlops-du/`), you can use the following commands:
     Accuracy: 91.38% (159/174)
     ```
 
-    Using `curl` commands:
+    Can also use these `curl` commands to test directly if not using the Streamlit Frontend or Postman:
     ```bash
     curl http://localhost:8000/health
 
@@ -189,7 +198,7 @@ From the root of the project (`mlops-du/`), you can use the following commands:
     ```
 
 ### Unit Tests:
-Note: Locally, you can also run unit tests via `task aws-dev:unit`. Unit tests in `tests/` do not need running services. They mock dependencies like the Kaggle dataset download, model training pipeline, Streamlit frontend imports, FastAPI backend, etc. to ensure core functionality works in isolation.
+Note: Locally, you can also run unit tests via `task aws-dev:unit`. Unit tests in `tests/` do not need running services. They mock dependencies like the Kaggle dataset download, model training pipeline, Streamlit frontend imports, FastAPI backend, etc. to ensure core functionality of this application works in isolation.
 
 ## AWS Prod Deployment 
 

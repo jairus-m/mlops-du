@@ -54,7 +54,7 @@ Assignments are ran with [task](https://taskfile.dev/) which is a task runner/bu
   - Get logs: `task aws-dev:logs`
   - Stop all services: `task aws-dev:down`
 
-### [WIP] Assignment 6: Production Deployment (Terraform + AWS) of Movie Sentiment ML Application
+### Assignment 6: Production Deployment (Terraform + AWS) of Movie Sentiment ML Application
 - `movie-sentiment-aws/`
   - Initialize terraform: `task aws-prod:init`
   - Create S3 Bucket: `task aws-prod:s3 S3_BUCKET=movie-sentiment-s3`
@@ -72,7 +72,7 @@ To export a `requirements.txt` file that lists out all the dependencies within `
 uv export --directory assignments/<project-name> -o requirements.txt
 ```
 
-## Overriding Default Port
+## Overriding Default Port for Assignments 1 - 3
 The default PORT of `8501` (used accross all assignments) can be overidden with the `PORT` var:
 ```bash
 # Build Docker image to expose PORT 8123 and pass to the CMD argument
