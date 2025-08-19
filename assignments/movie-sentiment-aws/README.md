@@ -229,6 +229,8 @@ TF_VAR_aws_session_token=$AWS_SESSION_TOKEN
 ```
 While these AWS credentials are really only used in production, they are needed locally for Terraform for authentication in order to run CLI commands like `plan` and `apply` as well as for passing directly to the EC2 instances at launch time.
 
+ > **Note**: You can find these credentials in the [AWS Academy Cloud Foundations – Sandbox](https://labs.vocareum.com/main/main.php?m=editor&asnid=4281178&stepid=4281179&hideNavBar=1). From the Vocareum main page: Details > AWS: Show > AWS CLI: Show > Copy and Paste the CLI details into this local `.env` file. Putting it here instead of your ` ~/.aws/credentials` file allows for Terraform to pick up on the credentials and also makes it easier to reproduce my steps for this isolated project.
+
 
 ### AWS Deployment with Terraform
 
@@ -258,13 +260,13 @@ This workflow provisions the entire infrastructure and deploys the applications 
 
 1.  Apply the Terraform Plan
 
-    Run the following command to create the AWS resources and deploy the application. Terraform will show you a plan and ask for confirmation before proceeding.
+    Run the following command to create the AWS resources and deploy the application.
 
     ```bash
     task aws-prod:apply S3_BUCKET=<your-unique-bucket-name> # Defaults to movie-sentiment-s3
     ```
 
-    This process will take a few minutes as the EC2 instances need to start, transfer necessary application files, install dependencies, build the Docker images, and run them.
+    This process will take some time as the EC2 instances need to start, transfer necessary application files, install dependencies, build the Docker images, and run them.
 
 #### Step 3: Access the App
 
@@ -272,7 +274,6 @@ Once the `terraform apply` command is complete, it will output the public IP add
 
 - **Frontend URL**: `http://<FRONTEND_PUBLIC_IP>:8501`
 - **Monitoring URL**: `http://<MONITORING_PUBLIC_IP>:8502`
-- **Backend URL**: `http://<BACKEND_PUBLIC_IP>:8000`
 
 #### Step 4: Cleanup
 
@@ -281,14 +282,13 @@ To tear down all the AWS resources created by this project, run the `destroy` co
   ```bash
   task aws-prod:destroy
   ```
-Note:
 
-If your Terraform lockfiles and states get out of sync and are causing you issues, run:
+Tip: Be weary of AWS state versus your local Terraform state. Manually changing resources in AWS and then running Terraform commands from the CLI can cause a lot of confusion and headache, so be careful when running these commands on your production AWS instance. However, if your Terraform lockfiles and states get out of sync and are causing you issues, run:
 
   ```bash
   task aws-prod:reset
   ```
-This will delete all the local Terraform artifacts (to release the lock and reset state) and will re initialize Terraform.
+This will delete all the local Terraform artifacts (to release the lock and reset state) and will re-initialize Terraform. If this does not resolve state issues, you will have to manually debug both AWS and Terraform. However, if you follow the commands for `task` - init > s3 > apply > destroy, you should be good!
 
 ## CI/CD Pipeline
 
@@ -311,7 +311,7 @@ Both jobs use a composite, reusable, and cached action defined in `.github/actio
 
 ### Continuous Deployment (CD)
 
-Currently, the deployment process is manual (via the `task aws-prod:` commands).
+Currently, the deployment process is manual (via the `task aws-prod:` commands) due to limitations with the AWS Learner Sandbox.
 
 However, a potential future improvement for CD would be to extend the GitHub Actions workflow to involve a new job that runs `terraform apply` automatically when changes are merged into the `main` branch. The workflow would also be triggered further by filtering for modifications to specific directories like `src/` or `terraform/`. This would fully automate the deployment of new versions of the application.
 
