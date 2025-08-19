@@ -1,6 +1,6 @@
 [project]
 name = "movie-sentiment-aws"
-version = "0.1.0"
+version = "0.1.1"
 description = "Serving a sentiment analysis model via FastAPI/Streamlit and deployed on AWS"
 readme = "README.md"
 requires-python = ">=3.12"
